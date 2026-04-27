@@ -28,6 +28,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   background:
     radial-gradient(circle at top left, rgba(255, 61, 113, 0.18), transparent 34rem),
     linear-gradient(180deg, #fff7fb 0%, var(--bg) 28rem);
@@ -51,7 +52,22 @@ button:disabled {
 .app-shell {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 24px 0 48px;
+  padding: calc(24px + env(safe-area-inset-top)) 0 calc(48px + env(safe-area-inset-bottom));
+}
+
+@media (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  select {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 
 .hero {
@@ -301,7 +317,8 @@ label {
 }
 
 input[type="text"],
-input[type="number"] {
+input[type="number"],
+select {
   width: 100%;
   margin-top: 8px;
   padding: 16px 18px;
@@ -312,7 +329,8 @@ input[type="number"] {
   outline: none;
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(255, 61, 113, 0.13);
 }
@@ -431,6 +449,7 @@ input:focus {
   min-height: 40px;
   color: var(--muted);
   line-height: 1.5;
+  white-space: pre-line;
 }
 
 .card-actions {
@@ -440,6 +459,28 @@ input:focus {
 
 .card-actions button {
   flex: 1 1 120px;
+}
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -4px 0 18px;
+}
+
+.filter-button {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.filter-button.active {
+  border-color: var(--secondary);
+  background: var(--secondary);
+  color: #ffffff;
 }
 
 .report-grid {
@@ -654,6 +695,16 @@ input:focus {
 .feedback-modal p:not(.eyebrow) {
   color: var(--muted);
   line-height: 1.7;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.modal-actions button {
+  min-width: 120px;
 }
 
 @media (max-width: 820px) {

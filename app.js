@@ -6,12 +6,251 @@ const STORAGE_KEYS = {
 const DEFAULT_SETTINGS = {
   allowEarlyCancel: true,
   currencyCode: "TL",
+  hourlyWage: 0,
+  language: "tr",
   timeRules: [
     { min: 0, max: 500, hours: 12 },
     { min: 500.01, max: 5000, hours: 24 },
     { min: 5000.01, max: 20000, hours: 72 },
     { min: 20000.01, max: Infinity, hours: 168 },
   ],
+};
+
+const TRANSLATIONS = {
+  tr: {
+    documentTitle: "CoolDown",
+    navAria: "Ana gezinme",
+    brandAria: "CoolDown ana sayfa",
+    brandTagline: "Satın almadan önce düşün",
+    installApp: "Uygulamayı Yükle",
+    heroEyebrow: "Flash sale baskısına mola ver",
+    heroTitle: "Sepete değil, önce soğuma odasına.",
+    heroCopy: "Alışveriş dürtülerini ürün kartlarına dönüştür, sayaç bitene kadar bekle ve gerçekten ihtiyacın olup olmadığını gör.",
+    heroSummaryAria: "Kısa özet",
+    savedSoFar: "Bugüne kadar kurtarılan",
+    tabsAria: "CoolDown ekranları",
+    tabAdd: "Yeni İstek",
+    tabWaiting: "Soğuma Odası",
+    tabWallet: "Kumbara",
+    tabSettings: "Ayarlar",
+    addEyebrow: "Sepete eklemeden önce",
+    addTitle: "Yeni istek ekle",
+    uploadImage: "Ürün görseli yükle",
+    uploadHint: "Tıkla ve seç veya görseli buraya sürükle-bırak",
+    imagePreviewAlt: "Seçilen ürün görseli ön izlemesi",
+    productNameLabel: "Ürün adı",
+    productNamePlaceholder: "Örn: Kablosuz kulaklık",
+    priceLabel: "Fiyat",
+    pricePlaceholder: "Örn: 1.500,50",
+    cooldownEmpty: "Fiyat girildiğinde soğuma süreniz burada görünecek.",
+    cooldownForAmount: "Bu tutar için soğuma süreniz {duration}.",
+    addButton: "CoolDown'a Al",
+    waitingEyebrow: "Ana vitrin",
+    waitingTitle: "Soğuma odası",
+    waitingCount: "{count} ürün bekliyor",
+    waitingEmpty: "Bekleyen ürün yok. Yeni bir istek ekleyerek başlayabilirsin.",
+    walletEyebrow: "Kumbara ve irade raporu",
+    walletTitle: "Karar geçmişi",
+    walletFiltersAria: "Kumbara filtreleri",
+    filterAll: "Tümü",
+    filterThisWeek: "Bu Hafta",
+    filterLast7Days: "Son 1 Hafta",
+    filterLast30Days: "Son 1 Ay",
+    totalSaved: "Toplam kurtarılan para",
+    earlySaved: "Erken pes ederek kurtarılan",
+    totalBought: "Satın alınan toplam",
+    successRate: "İrade başarı oranı",
+    historyEmpty: "Henüz tamamlanan karar yok.",
+    settingsEyebrow: "Profil ve ayarlar",
+    settingsTitle: "Kurallarını belirle",
+    earlyActionTitle: "Erken işlem izni",
+    earlyActionCopy: 'Sayaç bitmeden "Satın Aldım" ve "Vazgeçtim" butonlarının kullanılmasına izin ver.',
+    languageLabel: "Dil",
+    languageHelp: "Uygulama arayüz dilini seç.",
+    currencyCodeLabel: "Para birimi kodu",
+    currencyHelp: "Örn: TL, USD, EUR. Tüm tutarların sonunda bu kod gösterilir.",
+    hourlyWageLabel: "Saatlik kazanç",
+    hourlyWagePlaceholder: "Örn: 250,00",
+    hourlyWageHelp: "Ürün kartlarında bu ürünü almak için kaç saat çalışman gerektiği gösterilir.",
+    rulesEyebrow: "Parametrik süreler",
+    rulesTitle: "Fiyat kuralları",
+    ruleMin: "Minimum",
+    ruleMax: "Maksimum",
+    ruleHours: "Süre (saat)",
+    saveRules: "Kaydet",
+    clearDataTitle: "Verileri temizle",
+    clearDataCopy: "Tüm ürünleri, ayarları ve OPFS'deki görselleri siler.",
+    clearDataButton: "Tüm Verileri Temizle",
+    closeMessage: "Mesajı kapat",
+    ok: "Tamam",
+    cancel: "İptal",
+    heroSuccess: "%{success} irade başarısı",
+    hours: "{hours} saat",
+    days: "{days} gün",
+    remainingDays: "{days}g {hours}s {minutes}dk",
+    remainingHours: "{hours}s {minutes}dk {seconds}sn",
+    unnamedProduct: "İsimsiz ürün",
+    invalidFormEyebrow: "Eksik bilgi",
+    invalidFormTitle: "Ürünü CoolDown'a alamadık",
+    invalidProductName: "ürün adı",
+    invalidPrice: "geçerli bir fiyat",
+    invalidFormMessage: "Devam etmek için {fields} girmen gerekiyor.",
+    and: " ve ",
+    imageAlt: "{name} görseli",
+    imageMissing: "Görsel bulunamadı",
+    expired: "Süre doldu",
+    countdownBadge: "Flash Sale molası: {remaining}",
+    waitingMeta: "{duration} bekleme süresi atandı. Bitiş: {date}\nOluşturuldu: {createdAt}",
+    workTimeNeeded: "Bu ürün için yaklaşık {hours} saat çalışman gerekir.",
+    boughtButton: "Satın Aldım",
+    cancelButton: "Vazgeçtim",
+    boughtConfirmEyebrow: "Satın alma onayı",
+    boughtConfirmTitle: "Bu ürünü satın aldığını onaylıyor musun?",
+    boughtConfirmMessage: "{name} kaydı satın alındı olarak işaretlenecek.",
+    boughtConfirmAction: "Evet, Satın Aldım",
+    cancelConfirmEyebrow: "Vazgeçme onayı",
+    cancelConfirmTitle: "Bu üründen vazgeçtiğini onaylıyor musun?",
+    cancelConfirmMessage: "{name} kaydı kumbara geçmişine eklenecek.",
+    cancelConfirmAction: "Evet, Vazgeçtim",
+    deleteButton: "Sil",
+    deleteConfirmEyebrow: "Silme onayı",
+    deleteConfirmTitle: "Bu kaydı silmek istiyor musun?",
+    deleteConfirmMessage: "{name} kaydı ve varsa görseli kalıcı olarak silinecek.",
+    deleteConfirmAction: "Evet, Sil",
+    boughtBadge: "Satın alındı",
+    boughtMeta: "Bu ürün için satın alma kararı verildi. Kumbara toplamına eklenmedi.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
+    savedFullBadge: "Tam süre bekledi",
+    savedFullMeta: "Sayaç tamamlandıktan sonra satın alınmadı.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
+    savedEarlyBadge: "Erken vazgeçti",
+    savedEarlyMeta: "Sayaç bitmeden satın almaktan vazgeçildi.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
+    earlyBoughtEyebrow: "Erken satın alma",
+    earlySavedEyebrow: "Erken vazgeçme",
+    earlyBoughtTitle: "Soğuma süresi bitmeden satın aldın",
+    earlySavedTitle: "Güzel karar, parayı cebinde tuttun",
+    earlyBoughtMessage: "{name} için sayaç bitmeden alışverişi tamamladın. Bir sonraki istekte süreyi sonuna kadar beklemek kararını daha netleştirebilir.",
+    earlySavedMessage: "{name} için {amount} harcamaktan sayaç bitmeden vazgeçtin. Bu tutar kumbara raporuna eklendi.",
+    settingsSavedEyebrow: "Ayarlar kaydedildi",
+    rulesSavedTitle: "Ayarlarınız kaydedilmiştir",
+    rulesSavedMessage: "Değişiklikler başarıyla kaydedildi.",
+    clearConfirm: "Tüm CoolDown verileri ve görseller silinsin mi?",
+  },
+  en: {
+    documentTitle: "CoolDown",
+    navAria: "Main navigation",
+    brandAria: "CoolDown home",
+    brandTagline: "Think before you buy",
+    installApp: "Install App",
+    heroEyebrow: "Pause the flash sale pressure",
+    heroTitle: "Not in the cart yet. Into the cooldown room first.",
+    heroCopy: "Turn shopping urges into product cards, wait until the timer ends, and see whether you really need them.",
+    heroSummaryAria: "Quick summary",
+    savedSoFar: "Saved so far",
+    tabsAria: "CoolDown screens",
+    tabAdd: "New Wish",
+    tabWaiting: "Cooldown Room",
+    tabWallet: "Piggy Bank",
+    tabSettings: "Settings",
+    addEyebrow: "Before adding to cart",
+    addTitle: "Add a new wish",
+    uploadImage: "Upload product image",
+    uploadHint: "Click to choose or drag and drop an image here",
+    imagePreviewAlt: "Selected product image preview",
+    productNameLabel: "Product name",
+    productNamePlaceholder: "E.g. Wireless headphones",
+    priceLabel: "Price",
+    pricePlaceholder: "E.g. 1.500,50",
+    cooldownEmpty: "Enter a price to see your cooldown period here.",
+    cooldownForAmount: "Your cooldown period for this amount is {duration}.",
+    addButton: "Add to CoolDown",
+    waitingEyebrow: "Main showcase",
+    waitingTitle: "Cooldown room",
+    waitingCount: "{count} item(s) waiting",
+    waitingEmpty: "No waiting items yet. Add a new wish to get started.",
+    walletEyebrow: "Piggy bank and willpower report",
+    walletTitle: "Decision history",
+    walletFiltersAria: "Piggy bank filters",
+    filterAll: "All",
+    filterThisWeek: "This Week",
+    filterLast7Days: "Last 1 Week",
+    filterLast30Days: "Last 1 Month",
+    totalSaved: "Total money saved",
+    earlySaved: "Saved by canceling early",
+    totalBought: "Total purchased",
+    successRate: "Willpower success rate",
+    historyEmpty: "No completed decisions yet.",
+    settingsEyebrow: "Profile and settings",
+    settingsTitle: "Set your rules",
+    earlyActionTitle: "Early action permission",
+    earlyActionCopy: 'Allow "Bought It" and "Canceled" before the timer ends.',
+    languageLabel: "Language",
+    languageHelp: "Choose the app interface language.",
+    currencyCodeLabel: "Currency code",
+    currencyHelp: "E.g. TL, USD, EUR. This code is shown after every amount.",
+    hourlyWageLabel: "Hourly income",
+    hourlyWagePlaceholder: "E.g. 250,00",
+    hourlyWageHelp: "Product cards will show how many hours you need to work to buy the item.",
+    rulesEyebrow: "Parametric durations",
+    rulesTitle: "Price rules",
+    ruleMin: "Minimum",
+    ruleMax: "Maximum",
+    ruleHours: "Duration (hours)",
+    saveRules: "Save",
+    clearDataTitle: "Clear data",
+    clearDataCopy: "Deletes all items, settings, and images in OPFS.",
+    clearDataButton: "Clear All Data",
+    closeMessage: "Close message",
+    ok: "OK",
+    cancel: "Cancel",
+    heroSuccess: "%{success} willpower success",
+    hours: "{hours} hour(s)",
+    days: "{days} day(s)",
+    remainingDays: "{days}d {hours}h {minutes}m",
+    remainingHours: "{hours}h {minutes}m {seconds}s",
+    unnamedProduct: "Unnamed product",
+    invalidFormEyebrow: "Missing information",
+    invalidFormTitle: "We could not add this to CoolDown",
+    invalidProductName: "product name",
+    invalidPrice: "a valid price",
+    invalidFormMessage: "Please enter {fields} to continue.",
+    and: " and ",
+    imageAlt: "{name} image",
+    imageMissing: "Image not found",
+    expired: "Time is up",
+    countdownBadge: "Flash Sale pause: {remaining}",
+    waitingMeta: "{duration} cooldown period assigned. Ends: {date}\nCreated: {createdAt}",
+    workTimeNeeded: "You need to work about {hours} hour(s) for this item.",
+    boughtButton: "Bought It",
+    cancelButton: "Canceled",
+    boughtConfirmEyebrow: "Purchase confirmation",
+    boughtConfirmTitle: "Confirm that you bought this item?",
+    boughtConfirmMessage: "{name} will be marked as purchased.",
+    boughtConfirmAction: "Yes, Bought It",
+    cancelConfirmEyebrow: "Cancel confirmation",
+    cancelConfirmTitle: "Confirm that you canceled this item?",
+    cancelConfirmMessage: "{name} will be added to your piggy bank history.",
+    cancelConfirmAction: "Yes, Canceled",
+    deleteButton: "Delete",
+    deleteConfirmEyebrow: "Delete confirmation",
+    deleteConfirmTitle: "Do you want to delete this record?",
+    deleteConfirmMessage: "{name} and its image, if any, will be permanently deleted.",
+    deleteConfirmAction: "Yes, Delete",
+    boughtBadge: "Purchased",
+    boughtMeta: "A purchase decision was made for this item. It was not added to the piggy bank total.\nCreated: {createdAt}\nDecision date: {statusDate}",
+    savedFullBadge: "Waited full time",
+    savedFullMeta: "Not purchased after the timer ended.\nCreated: {createdAt}\nDecision date: {statusDate}",
+    savedEarlyBadge: "Canceled early",
+    savedEarlyMeta: "Canceled before the timer ended.\nCreated: {createdAt}\nDecision date: {statusDate}",
+    earlyBoughtEyebrow: "Early purchase",
+    earlySavedEyebrow: "Early cancel",
+    earlyBoughtTitle: "You bought it before cooldown ended",
+    earlySavedTitle: "Good call, you kept the money",
+    earlyBoughtMessage: "You completed the purchase for {name} before the timer ended. Waiting until the end next time may make the decision clearer.",
+    earlySavedMessage: "You canceled {name} before spending {amount}. This amount was added to your piggy bank report.",
+    settingsSavedEyebrow: "Settings saved",
+    rulesSavedTitle: "Your settings have been saved",
+    rulesSavedMessage: "Changes were saved successfully.",
+    clearConfirm: "Delete all CoolDown data and images?",
+  },
 };
 
 const state = {
@@ -21,6 +260,7 @@ const state = {
   countdownTimer: null,
   deferredInstallPrompt: null,
   objectUrls: new Map(),
+  walletFilter: "all",
 };
 
 const elements = {
@@ -36,6 +276,7 @@ const elements = {
   waitingGrid: document.querySelector("#waitingGrid"),
   waitingEmpty: document.querySelector("#waitingEmpty"),
   waitingCount: document.querySelector("#waitingCount"),
+  walletFilters: document.querySelectorAll("[data-wallet-filter]"),
   savedGrid: document.querySelector("#savedGrid"),
   savedEmpty: document.querySelector("#savedEmpty"),
   totalSaved: document.querySelector("#totalSaved"),
@@ -46,7 +287,9 @@ const elements = {
   heroSavedTotal: document.querySelector("#heroSavedTotal"),
   heroSuccessRate: document.querySelector("#heroSuccessRate"),
   allowEarlyCancel: document.querySelector("#allowEarlyCancel"),
+  languageSelect: document.querySelector("#languageSelect"),
   currencyCode: document.querySelector("#currencyCode"),
+  hourlyWage: document.querySelector("#hourlyWage"),
   rulesTable: document.querySelector("#rulesTable"),
   saveRulesButton: document.querySelector("#saveRulesButton"),
   clearDataButton: document.querySelector("#clearDataButton"),
@@ -57,6 +300,7 @@ const elements = {
   feedbackTitle: document.querySelector("#feedbackTitle"),
   feedbackMessage: document.querySelector("#feedbackMessage"),
   modalCloseButton: document.querySelector("#modalCloseButton"),
+  modalCancelButton: document.querySelector("#modalCancelButton"),
   modalOkButton: document.querySelector("#modalOkButton"),
   productCardTemplate: document.querySelector("#productCardTemplate"),
 };
@@ -96,6 +340,8 @@ function normalizeSettings(settings) {
   return {
     allowEarlyCancel: Boolean(merged.allowEarlyCancel),
     currencyCode: normalizeCurrencyCode(merged.currencyCode),
+    hourlyWage: Math.max(0, Number(merged.hourlyWage) || 0),
+    language: normalizeLanguage(merged.language),
     timeRules: (Array.isArray(merged.timeRules) ? merged.timeRules : DEFAULT_SETTINGS.timeRules)
       .map((rule, index) => ({
         min: Number(rule.min) || 0,
@@ -111,13 +357,14 @@ function normalizeItem(item) {
   const dateAdded = item.dateAdded || new Date().toISOString();
   return {
     id: item.id || createId(),
-    productName: item.productName || "İsimsiz ürün",
+    productName: item.productName || t("unnamedProduct"),
     price: Number(item.price) || 0,
     hasImage: Boolean(item.hasImage),
     dateAdded,
     assignedWaitHours,
     expireDate: item.expireDate || new Date(new Date(dateAdded).getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString(),
     status: item.status || "waiting",
+    statusChangedDate: item.statusChangedDate || (item.status && item.status !== "waiting" ? dateAdded : null),
   };
 }
 
@@ -127,6 +374,8 @@ function saveSettings() {
     JSON.stringify({
       allowEarlyCancel: state.settings.allowEarlyCancel,
       currencyCode: state.settings.currencyCode,
+      hourlyWage: state.settings.hourlyWage,
+      language: state.settings.language,
       timeRules: state.settings.timeRules.map((rule) => ({
         ...rule,
         max: rule.max === Infinity ? "Infinity" : rule.max,
@@ -141,6 +390,12 @@ function saveItems() {
 
 function bindEvents() {
   elements.tabs.forEach((button) => button.addEventListener("click", () => showTab(button.dataset.tab)));
+  elements.walletFilters.forEach((button) => {
+    button.addEventListener("click", () => {
+      state.walletFilter = button.dataset.walletFilter;
+      renderWallet();
+    });
+  });
   document.querySelectorAll("[data-tab-link]").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
@@ -179,8 +434,20 @@ function bindEvents() {
     renderWaitingRoom();
   });
 
+  elements.languageSelect.addEventListener("change", () => {
+    state.settings.language = normalizeLanguage(elements.languageSelect.value);
+    saveSettings();
+    renderAll();
+  });
+
   elements.currencyCode.addEventListener("change", () => {
     state.settings.currencyCode = normalizeCurrencyCode(elements.currencyCode.value);
+    saveSettings();
+    renderAll();
+  });
+
+  elements.hourlyWage.addEventListener("change", () => {
+    state.settings.hourlyWage = Math.max(0, parseCurrencyInput(elements.hourlyWage.value));
     saveSettings();
     renderAll();
   });
@@ -188,7 +455,7 @@ function bindEvents() {
   elements.saveRulesButton.addEventListener("click", handleRulesSave);
   elements.clearDataButton.addEventListener("click", handleClearData);
   elements.modalCloseButton.addEventListener("click", hideFeedbackModal);
-  elements.modalOkButton.addEventListener("click", hideFeedbackModal);
+  elements.modalCancelButton.addEventListener("click", hideFeedbackModal);
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -241,6 +508,7 @@ async function handleSubmit(event) {
     assignedWaitHours,
     expireDate: new Date(dateAdded.getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString(),
     status: "waiting",
+    statusChangedDate: null,
   };
 
   if (state.selectedImage) {
@@ -257,12 +525,12 @@ async function handleSubmit(event) {
 function updateCooldownHint() {
   const price = parseCurrencyInput(elements.price.value);
   if (!price) {
-    elements.cooldownHint.textContent = "Fiyat girildiğinde soğuma süreniz burada görünecek.";
+    elements.cooldownHint.textContent = t("cooldownEmpty");
     return;
   }
 
   const hours = getWaitHours(price);
-  elements.cooldownHint.textContent = `Bu tutar için soğuma süreniz ${formatHours(hours)}.`;
+  elements.cooldownHint.textContent = t("cooldownForAmount", { duration: formatHours(hours) });
 }
 
 function getWaitHours(price) {
@@ -312,8 +580,21 @@ function normalizeCurrencyCode(value) {
   return code || DEFAULT_SETTINGS.currencyCode;
 }
 
+function normalizeLanguage(value) {
+  return TRANSLATIONS[value] ? value : DEFAULT_SETTINGS.language;
+}
+
+function t(key, replacements = {}) {
+  const dictionary = TRANSLATIONS[state.settings.language] || TRANSLATIONS[DEFAULT_SETTINGS.language];
+  const template = dictionary[key] ?? TRANSLATIONS[DEFAULT_SETTINGS.language][key] ?? key;
+
+  return Object.entries(replacements).reduce((text, [name, value]) => {
+    return text.replaceAll(`{${name}}`, value);
+  }, template);
+}
+
 function formatHours(hours) {
-  return hours >= 24 && hours % 24 === 0 ? `${hours / 24} gün` : `${hours} saat`;
+  return hours >= 24 && hours % 24 === 0 ? t("days", { days: formatNumber(hours / 24) }) : t("hours", { hours: formatNumber(hours) });
 }
 
 function createId() {
@@ -376,6 +657,17 @@ async function clearOpfsImages() {
   }
 }
 
+async function deleteImageFromOpfs(id) {
+  const directory = await getImageDirectory();
+  if (!directory) return;
+
+  try {
+    await directory.removeEntry(id);
+  } catch {
+    // The item may not have an image or the file may have already been removed.
+  }
+}
+
 async function getImageDirectory() {
   if (!navigator.storage?.getDirectory) {
     return null;
@@ -390,14 +682,39 @@ async function getImageDirectory() {
 }
 
 function renderAll() {
+  applyTranslations();
   renderSettings();
+  updateCooldownHint();
   renderWaitingRoom();
   renderWallet();
 }
 
+function applyTranslations() {
+  document.documentElement.lang = state.settings.language;
+  document.title = t("documentTitle");
+
+  document.querySelectorAll("[data-i18n]").forEach((element) => {
+    element.textContent = t(element.dataset.i18n);
+  });
+
+  document.querySelectorAll("[data-i18n-placeholder]").forEach((element) => {
+    element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+  });
+
+  document.querySelectorAll("[data-i18n-aria-label]").forEach((element) => {
+    element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel));
+  });
+
+  document.querySelectorAll("[data-i18n-alt]").forEach((element) => {
+    element.setAttribute("alt", t(element.dataset.i18nAlt));
+  });
+}
+
 function renderSettings() {
   elements.allowEarlyCancel.checked = state.settings.allowEarlyCancel;
+  elements.languageSelect.value = state.settings.language;
   elements.currencyCode.value = state.settings.currencyCode;
+  elements.hourlyWage.value = state.settings.hourlyWage > 0 ? formatNumber(state.settings.hourlyWage) : "";
   elements.rulesTable.innerHTML = "";
 
   state.settings.timeRules.forEach((rule, index) => {
@@ -405,15 +722,15 @@ function renderSettings() {
     row.className = "rule-row";
     row.innerHTML = `
       <label>
-        Minimum
+        ${t("ruleMin")}
         <input type="text" inputmode="decimal" value="${formatNumber(rule.min)}" data-rule="${index}" data-field="min" />
       </label>
       <label>
-        Maksimum
+        ${t("ruleMax")}
         <input type="text" inputmode="decimal" value="${rule.max === Infinity ? "∞" : formatNumber(rule.max)}" data-rule="${index}" data-field="max" />
       </label>
       <label>
-        Süre (saat)
+        ${t("ruleHours")}
         <input type="text" inputmode="decimal" value="${formatNumber(rule.hours)}" data-rule="${index}" data-field="hours" />
       </label>
     `;
@@ -425,7 +742,7 @@ async function renderWaitingRoom() {
   const waitingItems = state.items.filter((item) => item.status === "waiting");
   elements.waitingGrid.innerHTML = "";
   elements.waitingEmpty.hidden = waitingItems.length > 0;
-  elements.waitingCount.textContent = `${waitingItems.length} ürün bekliyor`;
+  elements.waitingCount.textContent = t("waitingCount", { count: waitingItems.length });
 
   for (const item of waitingItems) {
     const card = await createProductCard(item, "waiting");
@@ -434,9 +751,14 @@ async function renderWaitingRoom() {
 }
 
 async function renderWallet() {
-  const savedItems = state.items.filter((item) => item.status === "saved_full" || item.status === "saved_early");
-  const boughtItems = state.items.filter((item) => item.status === "bought");
-  const decisionItems = [...savedItems, ...boughtItems].sort((first, second) => new Date(second.dateAdded) - new Date(first.dateAdded));
+  elements.walletFilters.forEach((button) => {
+    button.classList.toggle("active", button.dataset.walletFilter === state.walletFilter);
+  });
+
+  const completedItems = state.items.filter((item) => item.status !== "waiting" && isInWalletFilter(item));
+  const savedItems = completedItems.filter((item) => item.status === "saved_full" || item.status === "saved_early");
+  const boughtItems = completedItems.filter((item) => item.status === "bought");
+  const decisionItems = [...savedItems, ...boughtItems].sort((first, second) => new Date(second.statusChangedDate || second.dateAdded) - new Date(first.statusChangedDate || first.dateAdded));
   elements.savedGrid.innerHTML = "";
   elements.savedEmpty.hidden = decisionItems.length > 0;
 
@@ -448,7 +770,7 @@ async function renderWallet() {
   const totalSaved = savedItems.reduce((sum, item) => sum + item.price, 0);
   const earlySaved = savedItems.filter((item) => item.status === "saved_early").reduce((sum, item) => sum + item.price, 0);
   const totalBought = boughtItems.reduce((sum, item) => sum + item.price, 0);
-  const completedDecisions = state.items.filter((item) => item.status !== "waiting").length;
+  const completedDecisions = completedItems.length;
   const success = completedDecisions ? Math.round((savedItems.length / completedDecisions) * 100) : 0;
 
   elements.totalSaved.textContent = formatCurrency(totalSaved);
@@ -457,7 +779,7 @@ async function renderWallet() {
   elements.successRate.textContent = `%${success}`;
   elements.successBar.style.width = `${success}%`;
   elements.heroSavedTotal.textContent = formatCurrency(totalSaved);
-  elements.heroSuccessRate.textContent = `%${success} irade başarısı`;
+  elements.heroSuccessRate.textContent = t("heroSuccess", { success });
 }
 
 async function createProductCard(item, mode) {
@@ -478,9 +800,9 @@ async function createProductCard(item, mode) {
     const imageUrl = await loadImageUrl(item.id);
     if (imageUrl) {
       image.src = imageUrl;
-      image.alt = `${item.productName} görseli`;
+      image.alt = t("imageAlt", { name: item.productName });
     } else {
-      renderImagePlaceholder(imageWrap, image, "Görsel bulunamadı");
+      renderImagePlaceholder(imageWrap, image, t("imageMissing"));
     }
   } else {
     renderImagePlaceholder(imageWrap, image, item.productName);
@@ -489,43 +811,92 @@ async function createProductCard(item, mode) {
   if (mode === "waiting") {
     const remaining = getRemainingMs(item);
     const isExpired = remaining <= 0;
-    badge.textContent = isExpired ? "Süre doldu" : `Flash Sale molası: ${formatRemaining(remaining)}`;
+    badge.textContent = isExpired ? t("expired") : t("countdownBadge", { remaining: formatRemaining(remaining) });
     badge.classList.toggle("done", isExpired);
-    meta.textContent = `${formatHours(item.assignedWaitHours)} bekleme süresi atandı. Bitiş: ${formatDate(item.expireDate)}`;
+    meta.textContent = withWorkTime(item, t("waitingMeta", { duration: formatHours(item.assignedWaitHours), date: formatDate(item.expireDate), createdAt: formatDate(item.dateAdded) }));
 
     actions.append(
-      createActionButton("Satın Aldım", "secondary-button", () => handleDecision(item.id, "bought"), !isExpired && !state.settings.allowEarlyCancel),
-      createActionButton("Vazgeçtim", "primary-button", () => handleDecision(item.id, isExpired ? "saved_full" : "saved_early"), !isExpired && !state.settings.allowEarlyCancel),
+      createActionButton(t("boughtButton"), "secondary-button", () => confirmDecision(item.id, "bought"), !isExpired && !state.settings.allowEarlyCancel),
+      createActionButton(t("cancelButton"), "primary-button", () => confirmDecision(item.id, isExpired ? "saved_full" : "saved_early"), !isExpired && !state.settings.allowEarlyCancel),
+      createActionButton(t("deleteButton"), "danger-button", () => confirmDeleteItem(item.id)),
     );
   } else {
     const historyCopy = getHistoryCopy(item);
     badge.textContent = historyCopy.badge;
     badge.classList.add("done");
-    meta.textContent = historyCopy.meta;
+    meta.textContent = withWorkTime(item, historyCopy.meta);
+    actions.append(createActionButton(t("deleteButton"), "danger-button", () => confirmDeleteItem(item.id)));
   }
 
   return card;
 }
 
 function getHistoryCopy(item) {
+  const dates = {
+    createdAt: formatDate(item.dateAdded),
+    statusDate: formatDate(item.statusChangedDate || item.dateAdded),
+  };
+
   if (item.status === "bought") {
     return {
-      badge: "Satın alındı",
-      meta: "Bu ürün için satın alma kararı verildi. Kumbara toplamına eklenmedi.",
+      badge: t("boughtBadge"),
+      meta: t("boughtMeta", dates),
     };
   }
 
   if (item.status === "saved_full") {
     return {
-      badge: "Tam süre bekledi",
-      meta: "Sayaç tamamlandıktan sonra satın alınmadı.",
+      badge: t("savedFullBadge"),
+      meta: t("savedFullMeta", dates),
     };
   }
 
   return {
-    badge: "Erken vazgeçti",
-    meta: "Sayaç bitmeden satın almaktan vazgeçildi.",
+    badge: t("savedEarlyBadge"),
+    meta: t("savedEarlyMeta", dates),
   };
+}
+
+function withWorkTime(item, text) {
+  if (state.settings.hourlyWage <= 0) {
+    return text;
+  }
+
+  const hoursNeeded = item.price / state.settings.hourlyWage;
+  if (!Number.isFinite(hoursNeeded) || hoursNeeded <= 0) {
+    return text;
+  }
+
+  return `${text}\n${t("workTimeNeeded", { hours: formatNumber(hoursNeeded) })}`;
+}
+
+function isInWalletFilter(item) {
+  if (state.walletFilter === "all") return true;
+
+  const decisionDate = new Date(item.statusChangedDate || item.dateAdded);
+  const now = new Date();
+
+  if (state.walletFilter === "this_week") {
+    const startOfWeek = new Date(now);
+    const day = startOfWeek.getDay() || 7;
+    startOfWeek.setDate(startOfWeek.getDate() - day + 1);
+    startOfWeek.setHours(0, 0, 0, 0);
+    return decisionDate >= startOfWeek;
+  }
+
+  if (state.walletFilter === "last_7_days") {
+    const lastSevenDays = new Date(now);
+    lastSevenDays.setDate(lastSevenDays.getDate() - 7);
+    return decisionDate >= lastSevenDays;
+  }
+
+  if (state.walletFilter === "last_30_days") {
+    const lastThirtyDays = new Date(now);
+    lastThirtyDays.setDate(lastThirtyDays.getDate() - 30);
+    return decisionDate >= lastThirtyDays;
+  }
+
+  return true;
 }
 
 function renderImagePlaceholder(imageWrap, image, text) {
@@ -546,6 +917,20 @@ function createActionButton(label, className, onClick, disabled = false) {
   return button;
 }
 
+function confirmDecision(id, status) {
+  const item = state.items.find((candidate) => candidate.id === id);
+  if (!item) return;
+
+  const isBought = status === "bought";
+  showConfirmModal({
+    eyebrow: isBought ? t("boughtConfirmEyebrow") : t("cancelConfirmEyebrow"),
+    title: isBought ? t("boughtConfirmTitle") : t("cancelConfirmTitle"),
+    message: isBought ? t("boughtConfirmMessage", { name: item.productName }) : t("cancelConfirmMessage", { name: item.productName }),
+    confirmText: isBought ? t("boughtConfirmAction") : t("cancelConfirmAction"),
+    onConfirm: () => handleDecision(id, status),
+  });
+}
+
 function handleDecision(id, status) {
   const item = state.items.find((candidate) => candidate.id === id);
   if (!item) return;
@@ -562,7 +947,40 @@ function updateItemStatus(id, status) {
   const item = state.items.find((candidate) => candidate.id === id);
   if (!item) return;
   item.status = status;
+  item.statusChangedDate = new Date().toISOString();
   saveItems();
+  renderAll();
+}
+
+function confirmDeleteItem(id) {
+  const item = state.items.find((candidate) => candidate.id === id);
+  if (!item) return;
+
+  showConfirmModal({
+    eyebrow: t("deleteConfirmEyebrow"),
+    title: t("deleteConfirmTitle"),
+    message: t("deleteConfirmMessage", { name: item.productName }),
+    confirmText: t("deleteConfirmAction"),
+    onConfirm: () => deleteItem(id),
+  });
+}
+
+async function deleteItem(id) {
+  const item = state.items.find((candidate) => candidate.id === id);
+  if (!item) return;
+
+  state.items = state.items.filter((candidate) => candidate.id !== id);
+  saveItems();
+
+  if (item.hasImage) {
+    await deleteImageFromOpfs(id);
+  }
+
+  if (state.objectUrls.has(id)) {
+    URL.revokeObjectURL(state.objectUrls.get(id));
+    state.objectUrls.delete(id);
+  }
+
   renderAll();
 }
 
@@ -578,39 +996,42 @@ function formatRemaining(ms) {
   const seconds = totalSeconds % 60;
 
   if (days > 0) {
-    return `${days}g ${hours}s ${minutes}dk`;
+    return t("remainingDays", { days, hours, minutes });
   }
-  return `${hours}s ${minutes}dk ${seconds}sn`;
+  return t("remainingHours", { hours, minutes, seconds });
 }
 
 function showEarlyDecisionModal(item, status) {
+  prepareInfoModal();
   const boughtEarly = status === "bought";
   elements.feedbackIcon.textContent = boughtEarly ? "!" : "TL";
   elements.feedbackIcon.classList.toggle("success", !boughtEarly);
-  elements.feedbackEyebrow.textContent = boughtEarly ? "Erken satın alma" : "Erken vazgeçme";
-  elements.feedbackTitle.textContent = boughtEarly ? "Soğuma süresi bitmeden satın aldın" : "Güzel karar, parayı cebinde tuttun";
+  elements.feedbackEyebrow.textContent = boughtEarly ? t("earlyBoughtEyebrow") : t("earlySavedEyebrow");
+  elements.feedbackTitle.textContent = boughtEarly ? t("earlyBoughtTitle") : t("earlySavedTitle");
   elements.feedbackMessage.textContent = boughtEarly
-    ? `${item.productName} için sayaç bitmeden alışverişi tamamladın. Bir sonraki istekte süreyi sonuna kadar beklemek kararını daha netleştirebilir.`
-    : `${item.productName} için ${formatCurrency(item.price)} harcamaktan sayaç bitmeden vazgeçtin. Bu tutar kumbara raporuna eklendi.`;
+    ? t("earlyBoughtMessage", { name: item.productName })
+    : t("earlySavedMessage", { name: item.productName, amount: formatCurrency(item.price) });
   elements.feedbackModal.hidden = false;
   elements.modalOkButton.focus();
 }
 
 function showValidationModal(productName, price) {
+  prepareInfoModal();
   const missingFields = [];
-  if (!productName) missingFields.push("ürün adı");
-  if (price <= 0) missingFields.push("geçerli bir fiyat");
+  if (!productName) missingFields.push(t("invalidProductName"));
+  if (price <= 0) missingFields.push(t("invalidPrice"));
 
   elements.feedbackIcon.textContent = "!";
   elements.feedbackIcon.classList.remove("success");
-  elements.feedbackEyebrow.textContent = "Eksik bilgi";
-  elements.feedbackTitle.textContent = "Ürünü CoolDown'a alamadık";
-  elements.feedbackMessage.textContent = `Devam etmek için ${missingFields.join(" ve ")} girmen gerekiyor.`;
+  elements.feedbackEyebrow.textContent = t("invalidFormEyebrow");
+  elements.feedbackTitle.textContent = t("invalidFormTitle");
+  elements.feedbackMessage.textContent = t("invalidFormMessage", { fields: missingFields.join(t("and")) });
   elements.feedbackModal.hidden = false;
   elements.modalOkButton.focus();
 }
 
 function showInfoModal({ eyebrow, title, message, success = false }) {
+  prepareInfoModal();
   elements.feedbackIcon.textContent = success ? "OK" : "!";
   elements.feedbackIcon.classList.toggle("success", success);
   elements.feedbackEyebrow.textContent = eyebrow;
@@ -620,14 +1041,37 @@ function showInfoModal({ eyebrow, title, message, success = false }) {
   elements.modalOkButton.focus();
 }
 
+function showConfirmModal({ eyebrow, title, message, confirmText, onConfirm }) {
+  elements.modalCancelButton.hidden = false;
+  elements.modalCancelButton.textContent = t("cancel");
+  elements.modalOkButton.textContent = confirmText;
+  elements.modalOkButton.onclick = async () => {
+    hideFeedbackModal();
+    await onConfirm();
+  };
+  elements.feedbackIcon.textContent = "!";
+  elements.feedbackIcon.classList.remove("success");
+  elements.feedbackEyebrow.textContent = eyebrow;
+  elements.feedbackTitle.textContent = title;
+  elements.feedbackMessage.textContent = message;
+  elements.feedbackModal.hidden = false;
+  elements.modalOkButton.focus();
+}
+
+function prepareInfoModal() {
+  elements.modalCancelButton.hidden = true;
+  elements.modalOkButton.textContent = t("ok");
+  elements.modalOkButton.onclick = hideFeedbackModal;
+}
+
 function hideFeedbackModal() {
+  prepareInfoModal();
   elements.feedbackModal.hidden = true;
 }
 
 function formatDate(dateString) {
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(state.settings.language === "en" ? "en-US" : "tr-TR", {
     dateStyle: "medium",
-    timeStyle: "short",
   }).format(new Date(dateString));
 }
 
@@ -661,15 +1105,15 @@ function handleRulesSave() {
   renderSettings();
   updateCooldownHint();
   showInfoModal({
-    eyebrow: "Ayarlar kaydedildi",
-    title: "Süre kuralları güncellendi",
-    message: "Yeni fiyat aralıkları bundan sonra ekleyeceğin ürünler için geçerli olacak.",
+    eyebrow: t("settingsSavedEyebrow"),
+    title: t("rulesSavedTitle"),
+    message: t("rulesSavedMessage"),
     success: true,
   });
 }
 
 async function handleClearData() {
-  const confirmed = window.confirm("Tüm CoolDown verileri ve görseller silinsin mi?");
+  const confirmed = window.confirm(t("clearConfirm"));
   if (!confirmed) return;
 
   state.items = [];
