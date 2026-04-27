@@ -717,6 +717,10 @@ select:focus {
     padding: 18px;
   }
 
+  .dropzone {
+    min-height: 190px;
+  }
+
   .topbar,
   .hero-grid,
   .danger-zone,
