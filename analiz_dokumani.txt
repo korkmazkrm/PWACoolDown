@@ -1,0 +1,103 @@
+"CoolDown" - Sistem Gereksinimleri ve Analiz Dokümanı (PRD)
+Proje Mimarisi: Frontend (HTML + JS + CSS), Veri Tabanı (LocalStorage + OPFS - Origin Private File System)
+Görsel Tema: E-ticaret stili modern UI (Ürün kartları, büyük görseller, flash sale tarzı dinamik sayaçlar).
+Kritik Biçimlendirme Kuralı: Sistemdeki tüm sayısal ve parasal veriler ondalık ayracı olarak kesinlikle virgül (,) kullanılarak formatlanmalı ve dışa aktarılmalıdır (Örn: 1.500,50 TL). Nokta kullanılmayacaktır.
+
+1. Veri Modeli
+Veriler iki farklı yapıda tutulacaktır. Metin ve ayar verileri localStorage'da JSON formatında, görsel dosyaları ise OPFS'de tutulacaktır.
+
+Settings (Kullanıcı Ayarları - LocalStorage):
+
+allowEarlyCancel (Boolean): Kullanıcının bekleme süresi dolmadan vazgeçmesine izin veren ayar (Varsayılan: true).
+
+timeRules (Array): Fiyata göre bekleme süresini belirleyen kurallar dizisi:
+
+Kural 1: min: 0, max: 500, hours: 12
+
+Kural 2: min: 500.01, max: 5000, hours: 24
+
+Kural 3: min: 5000.01, max: 20000, hours: 72
+
+Kural 4: min: 20000.01, max: Infinity, hours: 168
+
+Item (Ürün/Harcama Nesnesi - LocalStorage):
+
+id: Benzersiz kimlik (UUID veya timestamp). Aynı zamanda OPFS'deki dosyanın adı olarak kullanılacaktır.
+
+productName: Ürün adı (Metin).
+
+price: Ürün fiyatı (Sayısal).
+
+hasImage: Ürünün görseli olup olmadığını belirten bayrak (Boolean).
+
+dateAdded: Eklenme zamanı (Tarih/Saat).
+
+assignedWaitHours: Eklendiği andaki fiyat kuralına göre atanan bekleme süresi.
+
+expireDate: dateAdded + assignedWaitHours hesaplanarak bulunan kesin bitiş tarihi.
+
+status: Ürünün güncel durumu (waiting, bought, saved_full, saved_early).
+
+2. Temel Ekranlar (UI/UX)
+Uygulama modern bir e-ticaret uygulaması hissiyatında 4 ana sekmeden oluşacaktır:
+
+Ekran 1: Yeni İstek Ekle (Sepete Ekle Formu)
+
+Ürün görseli yükleme alanı (Tıkla ve seç veya sürükle-bırak destekli).
+
+Ürün adı ve fiyatını alan şık form girdileri.
+
+Dinamik Geri Bildirim: Fiyat girildiğinde anlık çalışan uyarı: "Bu tutar için soğuma süreniz X saat."
+
+"CoolDown'a Al" (Kaydet) butonu.
+
+Ekran 2: Soğuma Odası (Ana Vitrin)
+
+status: waiting olan ürünler, modern e-ticaret "Ürün Kartları" (Product Cards) şeklinde listelenir.
+
+Kart Tasarımı: Üstte OPFS'den çekilen ürün görseli, altında ürün adı ve büyük puntolu fiyat.
+
+Kartın üzerinde dikkat çekici bir "Flash Sale" stili geriye sayan dinamik sayaç rozeti (expireDate bazlı).
+
+"Satın Aldım" butonu (Sayaç sıfırlanmadan sepete eklenemez/pasiftir).
+
+"Vazgeçtim" butonu. (Aktivasyonu Ayarlar ekranından gelen allowEarlyCancel verisine bağlıdır).
+
+Ekran 3: Kumbara ve İrade Raporu (Cüzdan)
+
+saved_full ve saved_early statüsündeki ürünlerin görsel kartları (satın alınmayan ürünler vitrini).
+
+Özet Rapor Bölümü (Dashboard stili):
+
+Toplam Kurtarılan Para (Vurgulu).
+
+Erken Pes Ederek Kurtarılan Para.
+
+İrade Başarı Oranı (% bar grafiği veya dairesel grafik).
+
+Ekran 4: Profil ve Ayarlar
+
+Erken Vazgeçme İzni (Toggle/Switch).
+
+Parametrik Süre Ayarları (timeRules tablosu).
+
+Verileri Temizle butonu (Hem LocalStorage hem de OPFS'deki dosyaları temizlemelidir).
+
+3. Ana İş Kuralları (Business Logic)
+OPFS (Origin Private File System) Yönetimi:
+
+Yeni ürün eklenirken görsel seçilmişse, navigator.storage.getDirectory() API'si kullanılarak dosya OPFS'ye ürünün id'si ile kaydedilmelidir.
+
+Vitrinlerde ürünler listelenirken, ilgili id ile OPFS'den dosya asenkron olarak okunmalı ve URL.createObjectURL() kullanılarak ekrandaki <img> etiketlerine basılmalıdır.
+
+Uygulama verileri temizlendiğinde OPFS dizinindeki tüm dosyalar da silinmelidir.
+
+Kural Eşleştirme (Rule Matching): Ürün fiyatı, timeRules dizisindeki aralıklarla eşleştirilip assignedWaitHours sabitlenir.
+
+Sayaç Mantığı: Sayfa yenilense bile sayaçlar expireDate üzerinden hesaplanır ve kesintisiz devam eder.
+
+Geriye Dönük Koruma: Ayarlardaki timeRules değişiklikleri sadece yeni eklenecek ürünleri etkiler.
+
+Erken Vazgeçme Kuralı: allowEarlyCancel AÇIK ise "Vazgeçtim" aktiftir (basılırsa saved_early olur). KAPALI ise sayaç bitene kadar pasiftir.
+
+Formatlama Kuralı: Arayüze basılan, rapora yansıyan her tutar .replace('.', ',') mantığıyla virgüllü (Örn: 1.500,00 TL) gösterilmelidir.

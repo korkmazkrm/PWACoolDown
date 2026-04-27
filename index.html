@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111827" />
+    <title>CoolDown</title>
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <nav class="topbar" aria-label="Ana gezinme">
+          <a class="brand" href="#add" data-tab-link="add" aria-label="CoolDown ana sayfa">
+            <span class="brand-mark">CD</span>
+            <span>
+              <strong>CoolDown</strong>
+              <small>Satın almadan önce düşün</small>
+            </span>
+          </a>
+          <div class="install-actions">
+            <button class="ghost-button" id="installButton" type="button" hidden>Uygulamayı Yükle</button>
+          </div>
+        </nav>
+
+        <section class="hero-grid">
+          <div>
+            <p class="eyebrow">Flash sale baskısına mola ver</p>
+            <h1>Sepete değil, önce soğuma odasına.</h1>
+            <p class="hero-copy">
+              Alışveriş dürtülerini ürün kartlarına dönüştür, sayaç bitene kadar bekle ve gerçekten ihtiyacın olup olmadığını gör.
+            </p>
+          </div>
+          <div class="hero-card" aria-label="Kısa özet">
+            <span>Bugüne kadar kurtarılan</span>
+            <strong id="heroSavedTotal">0,00 TL</strong>
+            <small id="heroSuccessRate">%0 irade başarısı</small>
+          </div>
+        </section>
+      </header>
+
+      <main>
+        <div class="tabs" role="tablist" aria-label="CoolDown ekranları">
+          <button class="tab-button active" type="button" role="tab" aria-selected="true" data-tab="add">Yeni İstek</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="waiting">Soğuma Odası</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="wallet">Kumbara</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="settings">Ayarlar</button>
+        </div>
+
+        <section class="screen active" id="screen-add" role="tabpanel">
+          <div class="section-heading">
+            <p class="eyebrow">Sepete eklemeden önce</p>
+            <h2>Yeni istek ekle</h2>
+          </div>
+
+          <form class="add-form card-panel" id="itemForm" novalidate>
+            <label class="dropzone" id="dropzone">
+              <input id="imageInput" name="image" type="file" accept="image/*" />
+              <span class="dropzone-icon">+</span>
+              <strong>Ürün görseli yükle</strong>
+              <small>Tıkla ve seç veya görseli buraya sürükle-bırak</small>
+              <img id="imagePreview" alt="Seçilen ürün görseli ön izlemesi" hidden />
+            </label>
+
+            <div class="form-grid">
+              <label>
+                Ürün adı
+                <input id="productName" name="productName" type="text" placeholder="Örn: Kablosuz kulaklık" required />
+              </label>
+              <label>
+                Fiyat
+                <input id="price" name="price" type="text" inputmode="decimal" placeholder="Örn: 1.500,50" required />
+              </label>
+            </div>
+
+            <div class="cooldown-hint" id="cooldownHint">Fiyat girildiğinde soğuma süreniz burada görünecek.</div>
+
+            <button class="primary-button" type="submit">CoolDown'a Al</button>
+          </form>
+        </section>
+
+        <section class="screen" id="screen-waiting" role="tabpanel" hidden>
+          <div class="section-heading split-heading">
+            <div>
+              <p class="eyebrow">Ana vitrin</p>
+              <h2>Soğuma odası</h2>
+            </div>
+            <span class="pill" id="waitingCount">0 ürün bekliyor</span>
+          </div>
+          <div class="product-grid" id="waitingGrid"></div>
+          <p class="empty-state" id="waitingEmpty" hidden>Bekleyen ürün yok. Yeni bir istek ekleyerek başlayabilirsin.</p>
+        </section>
+
+        <section class="screen" id="screen-wallet" role="tabpanel" hidden>
+          <div class="section-heading">
+            <p class="eyebrow">Kumbara ve irade raporu</p>
+            <h2>Karar geçmişi</h2>
+          </div>
+
+          <div class="report-grid">
+            <article class="report-card accent">
+              <span>Toplam kurtarılan para</span>
+              <strong id="totalSaved">0,00 TL</strong>
+            </article>
+            <article class="report-card">
+              <span>Erken pes ederek kurtarılan</span>
+              <strong id="earlySaved">0,00 TL</strong>
+            </article>
+            <article class="report-card">
+              <span>Satın alınan toplam</span>
+              <strong id="totalBought">0,00 TL</strong>
+            </article>
+            <article class="report-card">
+              <span>İrade başarı oranı</span>
+              <strong id="successRate">%0</strong>
+              <div class="progress-bar" aria-hidden="true"><span id="successBar"></span></div>
+            </article>
+          </div>
+
+          <div class="product-grid saved-grid" id="savedGrid"></div>
+          <p class="empty-state" id="savedEmpty" hidden>Henüz tamamlanan karar yok.</p>
+        </section>
+
+        <section class="screen" id="screen-settings" role="tabpanel" hidden>
+          <div class="section-heading">
+            <p class="eyebrow">Profil ve ayarlar</p>
+            <h2>Kurallarını belirle</h2>
+          </div>
+
+          <div class="settings-grid">
+            <section class="card-panel">
+              <div class="setting-row">
+                <div>
+                  <h3>Erken işlem izni</h3>
+                  <p>Sayaç bitmeden "Satın Aldım" ve "Vazgeçtim" butonlarının kullanılmasına izin ver.</p>
+                </div>
+                <label class="switch">
+                  <input id="allowEarlyCancel" type="checkbox" />
+                  <span></span>
+                </label>
+              </div>
+            </section>
+
+            <section class="card-panel">
+              <label>
+                Para birimi kodu
+                <input id="currencyCode" type="text" maxlength="8" placeholder="TL" />
+              </label>
+              <p class="setting-help">Örn: TL, USD, EUR. Tüm tutarların sonunda bu kod gösterilir.</p>
+            </section>
+
+            <section class="card-panel">
+              <div class="section-heading compact">
+                <p class="eyebrow">Parametrik süreler</p>
+                <h3>Fiyat kuralları</h3>
+              </div>
+              <div class="rules-table" id="rulesTable"></div>
+              <button class="secondary-button" id="saveRulesButton" type="button">Kuralları Kaydet</button>
+            </section>
+
+            <section class="card-panel danger-zone">
+              <div>
+                <h3>Verileri temizle</h3>
+                <p>Tüm ürünleri, ayarları ve OPFS'deki görselleri siler.</p>
+              </div>
+              <button class="danger-button" id="clearDataButton" type="button">Tüm Verileri Temizle</button>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="feedbackModal" hidden>
+      <section class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackMessage">
+        <button class="modal-close" id="modalCloseButton" type="button" aria-label="Mesajı kapat">x</button>
+        <span class="modal-icon" id="feedbackIcon" aria-hidden="true">!</span>
+        <p class="eyebrow" id="feedbackEyebrow">Erken karar</p>
+        <h2 id="feedbackTitle">Mesaj</h2>
+        <p id="feedbackMessage"></p>
+        <button class="primary-button" id="modalOkButton" type="button">Tamam</button>
+      </section>
+    </div>
+
+    <template id="productCardTemplate">
+      <article class="product-card">
+        <div class="product-image-wrap">
+          <img class="product-image" alt="" />
+          <span class="countdown-badge"></span>
+        </div>
+        <div class="product-body">
+          <h3></h3>
+          <strong class="price"></strong>
+          <p class="meta"></p>
+          <div class="card-actions"></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js" defer></script>
+  </body>
+</html>
