@@ -53,6 +53,7 @@
           <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="waiting" data-i18n="tabWaiting">Soğuma Odası</button>
           <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="wallet" data-i18n="tabWallet">Kumbara</button>
           <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="settings" data-i18n="tabSettings">Ayarlar</button>
+          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="auth" data-i18n="tabAuth">Üyelik</button>
         </div>
 
         <section class="screen active" id="screen-add" role="tabpanel">
@@ -62,13 +63,14 @@
           </div>
 
           <form class="add-form card-panel" id="itemForm" novalidate>
-            <label class="dropzone" id="dropzone">
-              <input id="imageInput" name="image" type="file" accept="image/*" />
+            <button class="dropzone" id="dropzone" type="button">
               <span class="dropzone-icon">+</span>
               <strong data-i18n="uploadImage">Ürün görseli ekle</strong>
               <small data-i18n="uploadHint">Galeriden seç veya kamerayla çek</small>
               <img id="imagePreview" alt="Seçilen ürün görseli ön izlemesi" data-i18n-alt="imagePreviewAlt" hidden />
-            </label>
+            </button>
+            <input id="imageInput" name="image" type="file" accept="image/*" hidden />
+            <input id="cameraInput" name="cameraImage" type="file" accept="image/*" capture="environment" hidden />
 
             <div class="form-grid">
               <label>
@@ -201,6 +203,48 @@
             </section>
           </div>
         </section>
+        <section class="screen" id="screen-auth" role="tabpanel" hidden>
+          <div class="section-heading">
+            <p class="eyebrow" data-i18n="authEyebrow">Hesap</p>
+            <h2 data-i18n="authTitle">Üyelik işlemleri</h2>
+          </div>
+
+          <div class="auth-status card-panel" id="authStatus" hidden>
+            <div>
+              <span data-i18n="signedInAs">Giriş yapılan hesap</span>
+              <strong id="authUserEmail"></strong>
+            </div>
+            <button class="danger-button" id="signOutButton" type="button" data-i18n="signOut">Çıkış Yap</button>
+          </div>
+
+          <div class="auth-grid">
+            <form class="auth-card card-panel" id="signInForm">
+              <h3 data-i18n="signInTitle">Giriş yap</h3>
+              <label>
+                <span data-i18n="emailLabel">E-posta</span>
+                <input id="signInEmail" name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                <span data-i18n="passwordLabel">Şifre</span>
+                <input id="signInPassword" name="password" type="password" autocomplete="current-password" required />
+              </label>
+              <button class="primary-button" type="submit" data-i18n="signInButton">Giriş Yap</button>
+            </form>
+
+            <form class="auth-card card-panel" id="signUpForm">
+              <h3 data-i18n="signUpTitle">Üye ol</h3>
+              <label>
+                <span data-i18n="emailLabel">E-posta</span>
+                <input id="signUpEmail" name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                <span data-i18n="passwordLabel">Şifre</span>
+                <input id="signUpPassword" name="password" type="password" autocomplete="new-password" minlength="6" required />
+              </label>
+              <button class="secondary-button" type="submit" data-i18n="signUpButton">Üye Ol</button>
+            </form>
+          </div>
+        </section>
       </main>
     </div>
 
@@ -214,6 +258,19 @@
         <div class="modal-actions">
           <button class="secondary-button" id="modalCancelButton" type="button" hidden data-i18n="cancel">İptal</button>
           <button class="primary-button" id="modalOkButton" type="button" data-i18n="ok">Tamam</button>
+        </div>
+      </section>
+    </div>
+    <div class="modal-backdrop" id="imageSourceModal" hidden>
+      <section class="feedback-modal image-source-modal" role="dialog" aria-modal="true" aria-labelledby="imageSourceTitle">
+        <h2 id="imageSourceTitle" data-i18n="imageSourceTitle">Görsel Kaynağı Seç</h2>
+        <p data-i18n="imageSourceMessage">Nasıl devam etmek istersin?</p>
+        <div class="source-actions">
+          <button class="primary-button" id="cameraOptionButton" type="button" data-i18n="takePhoto">Kamerayla Çek</button>
+          <button class="secondary-button" id="galleryOptionButton" type="button" data-i18n="chooseFromGallery">Galeriden Seç</button>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="imageSourceCancelButton" type="button" data-i18n="cancel">İptal</button>
         </div>
       </section>
     </div>

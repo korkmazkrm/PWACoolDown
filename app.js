@@ -1,7 +1,16 @@
 const STORAGE_KEYS = {
   items: "cooldown.items",
   settings: "cooldown.settings",
+  lastSeenAt: "cooldown.lastSeenAt",
+  auth: "cooldown.auth",
 };
+
+const LOCAL_API_BASE_URLS = ["https://localhost:7269/api", "http://localhost:5261/api"];
+const API_BASE_URLS =
+  localStorage.getItem("cooldown.apiBaseUrl")?.split(",").map((url) => url.trim()).filter(Boolean) ||
+  (["localhost", "127.0.0.1"].includes(window.location.hostname) ? LOCAL_API_BASE_URLS : [`${window.location.origin}/api`]);
+
+const FREE_ITEM_LIMIT = 3;
 
 const DEFAULT_SETTINGS = {
   allowEarlyCancel: true,
@@ -33,10 +42,35 @@ const TRANSLATIONS = {
     tabWaiting: "Soğuma Odası",
     tabWallet: "Kumbara",
     tabSettings: "Ayarlar",
+    tabAuth: "Üyelik",
+    authEyebrow: "Hesap",
+    authTitle: "Üyelik işlemleri",
+    signedInAs: "Giriş yapılan hesap",
+    signOut: "Çıkış Yap",
+    signInTitle: "Giriş yap",
+    signUpTitle: "Üye ol",
+    emailLabel: "E-posta",
+    passwordLabel: "Şifre",
+    signInButton: "Giriş Yap",
+    signUpButton: "Üye Ol",
+    authSuccessEyebrow: "Üyelik",
+    signInSuccessTitle: "Giriş yapıldı",
+    signUpSuccessTitle: "Üyelik oluşturuldu",
+    authSuccessMessage: "{email} hesabı aktif.",
+    signOutTitle: "Çıkış yapıldı",
+    signOutMessage: "Hesabından güvenli şekilde çıkış yaptın.",
+    authErrorTitle: "Üyelik işlemi tamamlanamadı",
+    loginRequiredEyebrow: "Üyelik gerekli",
+    loginRequiredTitle: "Login olmalısınız",
+    loginRequiredMessage: "3 karttan sonra yeni kart eklemek için giriş yapmanız gerekiyor.",
     addEyebrow: "Sepete eklemeden önce",
     addTitle: "Yeni istek ekle",
     uploadImage: "Ürün görseli ekle",
     uploadHint: "Galeriden seç veya kamerayla çek",
+    takePhoto: "Kamerayla Çek",
+    chooseFromGallery: "Galeriden Seç",
+    imageSourceTitle: "Görsel Kaynağı Seç",
+    imageSourceMessage: "Nasıl devam etmek istersin?",
     imagePreviewAlt: "Seçilen ürün görseli ön izlemesi",
     productNameLabel: "Ürün adı",
     productNamePlaceholder: "Örn: Kablosuz kulaklık",
@@ -99,6 +133,9 @@ const TRANSLATIONS = {
     imageAlt: "{name} görseli",
     imageMissing: "Görsel bulunamadı",
     expired: "Süre doldu",
+    expiredReturnEyebrow: "Soğuma süresi tamamlandı",
+    expiredReturnTitle: "{count} ürünün süresi doldu",
+    expiredReturnMessage: "Sen uygulamada değilken şu kayıtların bekleme süresi tamamlandı: {names}. Soğuma Odası'ndan karar verebilirsin.",
     countdownBadge: "Flash Sale molası: {remaining}",
     waitingMeta: "{duration} bekleme süresi atandı. Bitiş: {date}\nOluşturuldu: {createdAt}",
     workTimeNeeded: "Bu ürün için yaklaşık {hours} saat çalışman gerekir.",
@@ -150,10 +187,35 @@ const TRANSLATIONS = {
     tabWaiting: "Cooldown Room",
     tabWallet: "Piggy Bank",
     tabSettings: "Settings",
+    tabAuth: "Account",
+    authEyebrow: "Account",
+    authTitle: "Membership",
+    signedInAs: "Signed in as",
+    signOut: "Sign Out",
+    signInTitle: "Sign in",
+    signUpTitle: "Sign up",
+    emailLabel: "Email",
+    passwordLabel: "Password",
+    signInButton: "Sign In",
+    signUpButton: "Sign Up",
+    authSuccessEyebrow: "Account",
+    signInSuccessTitle: "Signed in",
+    signUpSuccessTitle: "Account created",
+    authSuccessMessage: "{email} is active.",
+    signOutTitle: "Signed out",
+    signOutMessage: "You signed out successfully.",
+    authErrorTitle: "Account action failed",
+    loginRequiredEyebrow: "Account required",
+    loginRequiredTitle: "Please sign in",
+    loginRequiredMessage: "You need to sign in to add more cards after 3 cards.",
     addEyebrow: "Before adding to cart",
     addTitle: "Add a new wish",
     uploadImage: "Add product image",
     uploadHint: "Choose from gallery or take a photo",
+    takePhoto: "Take Photo",
+    chooseFromGallery: "Choose from Gallery",
+    imageSourceTitle: "Choose Image Source",
+    imageSourceMessage: "How would you like to continue?",
     imagePreviewAlt: "Selected product image preview",
     productNameLabel: "Product name",
     productNamePlaceholder: "E.g. Wireless headphones",
@@ -216,6 +278,9 @@ const TRANSLATIONS = {
     imageAlt: "{name} image",
     imageMissing: "Image not found",
     expired: "Time is up",
+    expiredReturnEyebrow: "Cooldown completed",
+    expiredReturnTitle: "{count} item(s) expired",
+    expiredReturnMessage: "These items completed their cooldown while you were away: {names}. You can decide from the Cooldown Room.",
     countdownBadge: "Flash Sale pause: {remaining}",
     waitingMeta: "{duration} cooldown period assigned. Ends: {date}\nCreated: {createdAt}",
     workTimeNeeded: "You need to work about {hours} hour(s) for this item.",
@@ -261,6 +326,8 @@ const state = {
   deferredInstallPrompt: null,
   objectUrls: new Map(),
   walletFilter: "all",
+  lastReturnCheckAt: 0,
+  auth: null,
 };
 
 const elements = {
@@ -269,6 +336,11 @@ const elements = {
   form: document.querySelector("#itemForm"),
   dropzone: document.querySelector("#dropzone"),
   imageInput: document.querySelector("#imageInput"),
+  cameraInput: document.querySelector("#cameraInput"),
+  imageSourceModal: document.querySelector("#imageSourceModal"),
+  cameraOptionButton: document.querySelector("#cameraOptionButton"),
+  galleryOptionButton: document.querySelector("#galleryOptionButton"),
+  imageSourceCancelButton: document.querySelector("#imageSourceCancelButton"),
   imagePreview: document.querySelector("#imagePreview"),
   productName: document.querySelector("#productName"),
   price: document.querySelector("#price"),
@@ -293,6 +365,15 @@ const elements = {
   rulesTable: document.querySelector("#rulesTable"),
   saveRulesButton: document.querySelector("#saveRulesButton"),
   clearDataButton: document.querySelector("#clearDataButton"),
+  signInForm: document.querySelector("#signInForm"),
+  signUpForm: document.querySelector("#signUpForm"),
+  signInEmail: document.querySelector("#signInEmail"),
+  signInPassword: document.querySelector("#signInPassword"),
+  signUpEmail: document.querySelector("#signUpEmail"),
+  signUpPassword: document.querySelector("#signUpPassword"),
+  authStatus: document.querySelector("#authStatus"),
+  authUserEmail: document.querySelector("#authUserEmail"),
+  signOutButton: document.querySelector("#signOutButton"),
   installButton: document.querySelector("#installButton"),
   feedbackModal: document.querySelector("#feedbackModal"),
   feedbackIcon: document.querySelector("#feedbackIcon"),
@@ -309,9 +390,12 @@ document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   loadState();
+  loadAuthState();
   bindEvents();
   renderAll();
   startCountdowns();
+  notifyExpiredWhileAway();
+  persistLastSeenAt();
   registerServiceWorker();
 }
 
@@ -320,6 +404,10 @@ function loadState() {
   state.items = readJson(STORAGE_KEYS.items, []).map(normalizeItem);
   saveSettings();
   saveItems();
+}
+
+function loadAuthState() {
+  state.auth = readJson(STORAGE_KEYS.auth, null);
 }
 
 function readJson(key, fallback) {
@@ -405,7 +493,25 @@ function bindEvents() {
 
   elements.form.addEventListener("submit", handleSubmit);
   elements.price.addEventListener("input", updateCooldownHint);
+  elements.dropzone.addEventListener("click", handleDropzoneClick);
   elements.imageInput.addEventListener("change", () => setSelectedImage(elements.imageInput.files[0]));
+  elements.cameraInput.addEventListener("change", () => {
+    setSelectedImage(elements.cameraInput.files[0]);
+    elements.cameraInput.value = "";
+  });
+  elements.galleryOptionButton.addEventListener("click", () => {
+    hideImageSourceModal();
+    elements.imageInput.click();
+  });
+  elements.cameraOptionButton.addEventListener("click", () => {
+    hideImageSourceModal();
+    elements.cameraInput.click();
+  });
+  elements.imageSourceCancelButton.addEventListener("click", hideImageSourceModal);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+  window.addEventListener("pagehide", persistLastSeenAt);
+  window.addEventListener("pageshow", handleAppReturn);
+  window.addEventListener("focus", handleAppReturn);
 
   ["dragenter", "dragover"].forEach((eventName) => {
     elements.dropzone.addEventListener(eventName, (event) => {
@@ -454,6 +560,9 @@ function bindEvents() {
 
   elements.saveRulesButton.addEventListener("click", handleRulesSave);
   elements.clearDataButton.addEventListener("click", handleClearData);
+  elements.signInForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signin"));
+  elements.signUpForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signup"));
+  elements.signOutButton.addEventListener("click", handleSignOut);
   elements.modalCloseButton.addEventListener("click", hideFeedbackModal);
   elements.modalCancelButton.addEventListener("click", hideFeedbackModal);
 
@@ -489,6 +598,11 @@ function showTab(tabName) {
 async function handleSubmit(event) {
   event.preventDefault();
 
+  if (requiresLoginForNewItem()) {
+    showLoginRequiredModal();
+    return;
+  }
+
   const price = parseCurrencyInput(elements.price.value);
   const productName = elements.productName.value.trim();
   if (!productName || price <= 0) {
@@ -520,6 +634,19 @@ async function handleSubmit(event) {
   resetForm();
   renderAll();
   showTab("waiting");
+}
+
+function requiresLoginForNewItem() {
+  return state.items.length >= FREE_ITEM_LIMIT && !state.auth?.token;
+}
+
+function showLoginRequiredModal() {
+  showTab("auth");
+  showInfoModal({
+    eyebrow: t("loginRequiredEyebrow"),
+    title: t("loginRequiredTitle"),
+    message: t("loginRequiredMessage"),
+  });
 }
 
 function updateCooldownHint() {
@@ -611,6 +738,182 @@ function setSelectedImage(file) {
   elements.imagePreview.hidden = false;
 }
 
+async function handleAuthSubmit(event, mode) {
+  event.preventDefault();
+
+  const isSignIn = mode === "signin";
+  const emailInput = isSignIn ? elements.signInEmail : elements.signUpEmail;
+  const passwordInput = isSignIn ? elements.signInPassword : elements.signUpPassword;
+  if (!emailInput.reportValidity() || !passwordInput.reportValidity()) {
+    return;
+  }
+
+  try {
+    const auth = await requestAuth(mode, {
+      email: emailInput.value.trim(),
+      password: passwordInput.value,
+    });
+    state.auth = auth;
+    saveAuthState();
+    renderAuth();
+    event.target.reset();
+    showInfoModal({
+      eyebrow: t("authSuccessEyebrow"),
+      title: isSignIn ? t("signInSuccessTitle") : t("signUpSuccessTitle"),
+      message: t("authSuccessMessage", { email: auth.email }),
+      success: true,
+    });
+  } catch (error) {
+    showInfoModal({
+      eyebrow: t("authSuccessEyebrow"),
+      title: t("authErrorTitle"),
+      message: error.message,
+    });
+  }
+}
+
+async function requestAuth(mode, credentials) {
+  let connectionError = null;
+
+  for (const baseUrl of API_BASE_URLS) {
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/auth/${mode}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(credentials),
+      });
+    } catch (error) {
+      connectionError = error;
+      continue;
+    }
+
+    const payload = await readResponseJson(response);
+    if (!response.ok) {
+      throw new Error(payload?.message || t("authErrorTitle"));
+    }
+
+    return payload;
+  }
+
+  throw connectionError || new Error(t("authErrorTitle"));
+}
+
+async function readResponseJson(response) {
+  try {
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+function saveAuthState() {
+  localStorage.setItem(STORAGE_KEYS.auth, JSON.stringify(state.auth));
+}
+
+function renderAuth() {
+  const isSignedIn = Boolean(state.auth?.token);
+  elements.authStatus.hidden = !isSignedIn;
+  elements.authUserEmail.textContent = isSignedIn ? state.auth.email : "";
+}
+
+function handleSignOut() {
+  state.auth = null;
+  localStorage.removeItem(STORAGE_KEYS.auth);
+  renderAuth();
+  showInfoModal({
+    eyebrow: t("authSuccessEyebrow"),
+    title: t("signOutTitle"),
+    message: t("signOutMessage"),
+    success: true,
+  });
+}
+
+function handleDropzoneClick(event) {
+  event.preventDefault();
+  if (isIosDevice()) {
+    elements.imageInput.click();
+    return;
+  }
+  showImageSourceModal();
+}
+
+function isIosDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function showImageSourceModal() {
+  elements.imageSourceModal.hidden = false;
+}
+
+function hideImageSourceModal() {
+  elements.imageSourceModal.hidden = true;
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "hidden") {
+    persistLastSeenAt();
+    return;
+  }
+
+  handleAppReturn();
+}
+
+function handleAppReturn() {
+  const now = Date.now();
+  if (now - state.lastReturnCheckAt < 750) {
+    return;
+  }
+
+  state.lastReturnCheckAt = now;
+  notifyExpiredWhileAway();
+  persistLastSeenAt();
+  renderWaitingRoom();
+}
+
+function notifyExpiredWhileAway() {
+  const lastSeenMs = readLastSeenMs();
+  if (!lastSeenMs) {
+    return;
+  }
+
+  const now = Date.now();
+  const expiredItems = state.items.filter((item) => {
+    const expireMs = new Date(item.expireDate).getTime();
+    return item.status === "waiting" && expireMs > lastSeenMs && expireMs <= now;
+  });
+
+  if (!expiredItems.length) {
+    return;
+  }
+
+  const names = formatExpiredItemNames(expiredItems);
+  showTab("waiting");
+  showInfoModal({
+    eyebrow: t("expiredReturnEyebrow"),
+    title: t("expiredReturnTitle", { count: expiredItems.length }),
+    message: t("expiredReturnMessage", { names }),
+  });
+}
+
+function formatExpiredItemNames(items) {
+  const visibleNames = items.slice(0, 3).map((item) => item.productName);
+  const remainingCount = items.length - visibleNames.length;
+  return remainingCount > 0 ? `${visibleNames.join(", ")} +${remainingCount}` : visibleNames.join(", ");
+}
+
+function readLastSeenMs() {
+  const lastSeenAt = localStorage.getItem(STORAGE_KEYS.lastSeenAt);
+  const timestamp = lastSeenAt ? new Date(lastSeenAt).getTime() : 0;
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function persistLastSeenAt() {
+  localStorage.setItem(STORAGE_KEYS.lastSeenAt, new Date().toISOString());
+}
+
 function resetForm() {
   elements.form.reset();
   state.selectedImage = null;
@@ -684,6 +987,7 @@ async function getImageDirectory() {
 function renderAll() {
   applyTranslations();
   renderSettings();
+  renderAuth();
   updateCooldownHint();
   renderWaitingRoom();
   renderWallet();
