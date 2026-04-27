@@ -363,6 +363,8 @@ const elements = {
   currencyCode: document.querySelector("#currencyCode"),
   hourlyWage: document.querySelector("#hourlyWage"),
   rulesTable: document.querySelector("#rulesTable"),
+  settingsDrawer: document.querySelector("#settingsDrawer"),
+  settingsCloseButton: document.querySelector("#settingsCloseButton"),
   saveRulesButton: document.querySelector("#saveRulesButton"),
   clearDataButton: document.querySelector("#clearDataButton"),
   signInForm: document.querySelector("#signInForm"),
@@ -371,6 +373,7 @@ const elements = {
   signInPassword: document.querySelector("#signInPassword"),
   signUpEmail: document.querySelector("#signUpEmail"),
   signUpPassword: document.querySelector("#signUpPassword"),
+  authForms: document.querySelector("#authForms"),
   authStatus: document.querySelector("#authStatus"),
   authUserEmail: document.querySelector("#authUserEmail"),
   signOutButton: document.querySelector("#signOutButton"),
@@ -560,6 +563,17 @@ function bindEvents() {
 
   elements.saveRulesButton.addEventListener("click", handleRulesSave);
   elements.clearDataButton.addEventListener("click", handleClearData);
+  elements.settingsCloseButton.addEventListener("click", closeSettingsDrawer);
+  elements.settingsDrawer.addEventListener("click", (event) => {
+    if (event.target === elements.settingsDrawer) {
+      closeSettingsDrawer();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !elements.settingsDrawer.hidden) {
+      closeSettingsDrawer();
+    }
+  });
   elements.signInForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signin"));
   elements.signUpForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signup"));
   elements.signOutButton.addEventListener("click", handleSignOut);
@@ -582,6 +596,12 @@ function bindEvents() {
 }
 
 function showTab(tabName) {
+  if (tabName === "settings") {
+    openSettingsDrawer();
+    return;
+  }
+
+  closeSettingsDrawer();
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === tabName;
     button.classList.toggle("active", isActive);
@@ -592,6 +612,38 @@ function showTab(tabName) {
     const isActive = screen.id === `screen-${tabName}`;
     screen.classList.toggle("active", isActive);
     screen.hidden = !isActive;
+  });
+}
+
+function openSettingsDrawer() {
+  elements.tabs.forEach((button) => {
+    const isActive = button.dataset.tab === "settings";
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  elements.settingsDrawer.hidden = false;
+  document.body.classList.add("drawer-open");
+  elements.settingsCloseButton.focus();
+}
+
+function closeSettingsDrawer() {
+  if (elements.settingsDrawer.hidden) {
+    return;
+  }
+
+  elements.settingsDrawer.hidden = true;
+  document.body.classList.remove("drawer-open");
+  restoreActiveTabFromVisibleScreen();
+}
+
+function restoreActiveTabFromVisibleScreen() {
+  const activeScreen = [...elements.screens].find((screen) => !screen.hidden);
+  const activeTab = activeScreen?.id.replace("screen-", "");
+
+  elements.tabs.forEach((button) => {
+    const isActive = button.dataset.tab === activeTab;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
   });
 }
 
@@ -816,6 +868,7 @@ function saveAuthState() {
 function renderAuth() {
   const isSignedIn = Boolean(state.auth?.token);
   elements.authStatus.hidden = !isSignedIn;
+  elements.authForms.hidden = isSignedIn;
   elements.authUserEmail.textContent = isSignedIn ? state.auth.email : "";
 }
 
