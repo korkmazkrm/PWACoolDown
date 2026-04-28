@@ -43,7 +43,7 @@
             <span data-i18n="savedSoFar">Bugüne kadar kurtarılan</span>
             <strong id="heroSavedTotal">0,00 TL</strong>
             <small id="heroSuccessRate">%0 irade başarısı</small>
-            <div class="streak-pill">
+            <div class="streak-pill" id="heroStreakPill" hidden>
               <strong id="heroStreak">🔥 0 Günlük Seri</strong>
               <small id="heroLongestStreak">Rekor: 0 gün</small>
             </div>
@@ -101,6 +101,17 @@
             </div>
             <span class="pill" id="waitingCount">0 ürün bekliyor</span>
           </div>
+          <section class="budget-health-card" data-budget-health>
+            <div class="budget-health-header">
+              <span data-i18n="budgetHealthTitle">Can Barı</span>
+              <strong data-budget-health-status></strong>
+            </div>
+            <div class="budget-health-bar" aria-hidden="true">
+              <span class="budget-health-fill" data-budget-health-fill></span>
+              <span class="budget-health-ghost" data-budget-health-ghost></span>
+            </div>
+            <p data-budget-health-copy></p>
+          </section>
           <div class="product-grid" id="waitingGrid"></div>
           <p class="empty-state" id="waitingEmpty" hidden data-i18n="waitingEmpty">Bekleyen ürün yok. Yeni bir istek ekleyerek başlayabilirsin.</p>
         </section>
@@ -110,6 +121,18 @@
             <p class="eyebrow" data-i18n="walletEyebrow">Kumbara ve irade raporu</p>
             <h2 data-i18n="walletTitle">Karar geçmişi</h2>
           </div>
+
+          <section class="budget-health-card" data-budget-health>
+            <div class="budget-health-header">
+              <span data-i18n="budgetHealthTitle">Can Barı</span>
+              <strong data-budget-health-status></strong>
+            </div>
+            <div class="budget-health-bar" aria-hidden="true">
+              <span class="budget-health-fill" data-budget-health-fill></span>
+              <span class="budget-health-ghost" data-budget-health-ghost></span>
+            </div>
+            <p data-budget-health-copy></p>
+          </section>
 
           <div class="filter-bar" id="walletFilters" aria-label="Kumbara filtreleri" data-i18n-aria-label="walletFiltersAria">
             <button class="filter-button active" type="button" data-wallet-filter="all" data-i18n="filterAll">Tümü</button>
@@ -203,6 +226,22 @@
                   <input id="regretSurveyDays" type="number" inputmode="numeric" step="1" placeholder="Örn: 14" data-i18n-placeholder="regretSurveyDaysPlaceholder" />
                 </label>
                 <p class="setting-help" data-i18n="regretSurveyDaysHelp">Satın aldıktan kaç gün sonra yüzleşme anketinin gösterileceğini belirler.</p>
+              </section>
+
+              <section class="card-panel">
+                <label>
+                  <span data-i18n="monthlyBudgetLimitLabel">Aylık keyfi harcama limiti</span>
+                  <input id="monthlyBudgetLimit" type="text" inputmode="decimal" placeholder="Örn: 15.000,00" data-i18n-placeholder="monthlyBudgetLimitPlaceholder" />
+                </label>
+                <p class="setting-help" data-i18n="monthlyBudgetLimitHelp">Can Barı için bu döngüdeki maksimum bütçeni belirler.</p>
+              </section>
+
+              <section class="card-panel">
+                <label>
+                  <span data-i18n="budgetResetDayLabel">Bütçe yenileme günü</span>
+                  <input id="budgetResetDay" type="number" inputmode="numeric" min="1" max="31" step="1" placeholder="1" data-i18n-placeholder="budgetResetDayPlaceholder" />
+                </label>
+                <p class="setting-help" data-i18n="budgetResetDayHelp">Maaş günü mantığıyla bütçenin ayın hangi günü %100'e döneceğini belirler.</p>
               </section>
 
               <section class="card-panel">

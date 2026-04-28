@@ -236,6 +236,123 @@ main {
   margin-top: 28px;
 }
 
+.budget-health-card {
+  position: sticky;
+  top: 86px;
+  z-index: 8;
+  margin-bottom: 22px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 42px rgba(17, 24, 39, 0.12);
+  backdrop-filter: blur(18px);
+}
+
+.budget-health-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 10px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.budget-health-header strong {
+  color: var(--success);
+}
+
+.budget-health-bar {
+  position: relative;
+  height: 24px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.budget-health-fill,
+.budget-health-ghost {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  border-radius: inherit;
+  transition: width 260ms ease, left 260ms ease, background 180ms ease;
+}
+
+.budget-health-fill {
+  background: var(--success);
+}
+
+.budget-health-ghost {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(239, 68, 68, 0.52) 0,
+    rgba(239, 68, 68, 0.52) 8px,
+    rgba(156, 163, 175, 0.42) 8px,
+    rgba(156, 163, 175, 0.42) 16px
+  );
+  animation: ghost-damage 700ms linear infinite;
+}
+
+.budget-health-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-line;
+}
+
+.budget-health-card.is-caution .budget-health-fill {
+  background: #f59e0b;
+}
+
+.budget-health-card.is-caution .budget-health-header strong {
+  color: #b45309;
+}
+
+.budget-health-card.is-critical .budget-health-fill {
+  background: #ef4444;
+  animation: critical-health 900ms ease-in-out infinite;
+}
+
+.budget-health-card.is-critical .budget-health-header strong,
+.budget-health-card.is-over .budget-health-header strong {
+  color: #dc2626;
+}
+
+.budget-health-card.is-over .budget-health-bar {
+  border-color: #ef4444;
+  background: #fee2e2;
+}
+
+.budget-health-card.is-disabled .budget-health-fill {
+  width: 0;
+}
+
+@keyframes critical-health {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes ghost-damage {
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 24px 0;
+  }
+}
+
 .section-heading {
   margin-bottom: 18px;
 }

@@ -19,6 +19,8 @@ const DEFAULT_SETTINGS = {
   currencyCode: "TL",
   hourlyWage: 0,
   language: "tr",
+  monthlyBudgetLimit: 0,
+  budgetResetDay: 1,
   regretSurveyDays: 14,
   timeRules: [
     { min: 0, max: 500, hours: 12 },
@@ -110,6 +112,18 @@ const TRANSLATIONS = {
     successRate: "İrade başarı oranı",
     regretRate: "Dürtüsel pişmanlık oranı",
     regretNoData: "Henüz veri yok",
+    budgetHealthTitle: "Can Barı",
+    budgetHealthSetup: "Can Barı için Settings bölümünden aylık bütçe limiti belirle.",
+    budgetHealthSafe: "Güvendesin",
+    budgetHealthCaution: "Dikkatli ol",
+    budgetHealthCritical: "Kritik seviye",
+    budgetHealthOver: "Bütçe Aşıldı!",
+    budgetHealthCopy: "Kalan Can: {remaining} / {limit}",
+    budgetHealthGhostCopy: "Bekleyen ürünleri alırsan canın {projected} seviyesine düşecek.",
+    budgetOverdraftEyebrow: "Can Barı uyarısı",
+    budgetOverdraftTitle: "Bu harcama canını eksiye düşürecek!",
+    budgetOverdraftMessage: "{amount} tutarındaki bu istek kalan canından yüksek. Devam edersen Can Barı negatif bölgeye inecek.",
+    budgetOverdraftAction: "Evet, beklemeye al",
     historyEmpty: "Henüz tamamlanan karar yok.",
     settingsEyebrow: "Profil ve ayarlar",
     settingsTitle: "Kurallarını belirle",
@@ -125,6 +139,12 @@ const TRANSLATIONS = {
     regretSurveyDaysLabel: "Pişmanlık anketi süresi",
     regretSurveyDaysPlaceholder: "Örn: 14",
     regretSurveyDaysHelp: "Satın aldıktan kaç gün sonra yüzleşme anketinin gösterileceğini belirler.",
+    monthlyBudgetLimitLabel: "Aylık keyfi harcama limiti",
+    monthlyBudgetLimitPlaceholder: "Örn: 15.000,00",
+    monthlyBudgetLimitHelp: "Can Barı için bu döngüdeki maksimum bütçeni belirler.",
+    budgetResetDayLabel: "Bütçe yenileme günü",
+    budgetResetDayPlaceholder: "1",
+    budgetResetDayHelp: "Maaş günü mantığıyla bütçenin ayın hangi günü %100'e döneceğini belirler.",
     rulesEyebrow: "Parametrik süreler",
     rulesTitle: "Fiyat kuralları",
     ruleMin: "Minimum",
@@ -279,6 +299,18 @@ const TRANSLATIONS = {
     successRate: "Willpower success rate",
     regretRate: "Impulsive regret rate",
     regretNoData: "No data yet",
+    budgetHealthTitle: "Health Bar",
+    budgetHealthSetup: "Set a monthly budget limit in Settings to activate the Health Bar.",
+    budgetHealthSafe: "You're safe",
+    budgetHealthCaution: "Be careful",
+    budgetHealthCritical: "Critical level",
+    budgetHealthOver: "Budget Exceeded!",
+    budgetHealthCopy: "Remaining Health: {remaining} / {limit}",
+    budgetHealthGhostCopy: "If you buy waiting items, your health will drop to {projected}.",
+    budgetOverdraftEyebrow: "Health Bar warning",
+    budgetOverdraftTitle: "This spending will push your health below zero!",
+    budgetOverdraftMessage: "This {amount} wish is higher than your remaining health. If you continue, the Health Bar will enter negative territory.",
+    budgetOverdraftAction: "Yes, add to waiting",
     historyEmpty: "No completed decisions yet.",
     settingsEyebrow: "Profile and settings",
     settingsTitle: "Set your rules",
@@ -294,6 +326,12 @@ const TRANSLATIONS = {
     regretSurveyDaysLabel: "Regret survey delay",
     regretSurveyDaysPlaceholder: "E.g. 14",
     regretSurveyDaysHelp: "Sets how many days after a purchase the reflection survey appears.",
+    monthlyBudgetLimitLabel: "Monthly impulse budget limit",
+    monthlyBudgetLimitPlaceholder: "E.g. 15.000,00",
+    monthlyBudgetLimitHelp: "Sets your maximum budget for the current Health Bar cycle.",
+    budgetResetDayLabel: "Budget reset day",
+    budgetResetDayPlaceholder: "1",
+    budgetResetDayHelp: "Sets which day of the month your budget returns to 100%, like payday.",
     rulesEyebrow: "Parametric durations",
     rulesTitle: "Price rules",
     ruleMin: "Minimum",
@@ -417,8 +455,10 @@ const elements = {
   successRate: document.querySelector("#successRate"),
   successBar: document.querySelector("#successBar"),
   regretRate: document.querySelector("#regretRate"),
+  budgetHealthCards: document.querySelectorAll("[data-budget-health]"),
   heroSavedTotal: document.querySelector("#heroSavedTotal"),
   heroSuccessRate: document.querySelector("#heroSuccessRate"),
+  heroStreakPill: document.querySelector("#heroStreakPill"),
   heroStreak: document.querySelector("#heroStreak"),
   heroLongestStreak: document.querySelector("#heroLongestStreak"),
   allowEarlyCancel: document.querySelector("#allowEarlyCancel"),
@@ -426,6 +466,8 @@ const elements = {
   currencyCode: document.querySelector("#currencyCode"),
   hourlyWage: document.querySelector("#hourlyWage"),
   regretSurveyDays: document.querySelector("#regretSurveyDays"),
+  monthlyBudgetLimit: document.querySelector("#monthlyBudgetLimit"),
+  budgetResetDay: document.querySelector("#budgetResetDay"),
   rulesTable: document.querySelector("#rulesTable"),
   settingsDrawer: document.querySelector("#settingsDrawer"),
   settingsCloseButton: document.querySelector("#settingsCloseButton"),
@@ -526,6 +568,8 @@ function normalizeSettings(settings) {
     currencyCode: normalizeCurrencyCode(merged.currencyCode),
     hourlyWage: Math.max(0, Number(merged.hourlyWage) || 0),
     language: normalizeLanguage(merged.language),
+    monthlyBudgetLimit: Math.max(0, Number(merged.monthlyBudgetLimit) || 0),
+    budgetResetDay: normalizeBudgetResetDay(merged.budgetResetDay),
     regretSurveyDays: normalizeRegretSurveyDays(merged.regretSurveyDays),
     timeRules: (Array.isArray(merged.timeRules) ? merged.timeRules : DEFAULT_SETTINGS.timeRules)
       .map((rule, index) => ({
@@ -567,6 +611,8 @@ function saveSettings() {
       currencyCode: state.settings.currencyCode,
       hourlyWage: state.settings.hourlyWage,
       language: state.settings.language,
+      monthlyBudgetLimit: state.settings.monthlyBudgetLimit,
+      budgetResetDay: state.settings.budgetResetDay,
       regretSurveyDays: state.settings.regretSurveyDays,
       timeRules: state.settings.timeRules.map((rule) => ({
         ...rule,
@@ -679,6 +725,18 @@ function bindEvents() {
     saveSettings();
     renderSettings();
     checkRegretSurveys();
+  });
+
+  elements.monthlyBudgetLimit.addEventListener("change", () => {
+    state.settings.monthlyBudgetLimit = Math.max(0, parseCurrencyInput(elements.monthlyBudgetLimit.value));
+    saveSettings();
+    renderAll();
+  });
+
+  elements.budgetResetDay.addEventListener("change", () => {
+    state.settings.budgetResetDay = normalizeBudgetResetDay(elements.budgetResetDay.value);
+    saveSettings();
+    renderAll();
   });
 
   elements.saveRulesButton.addEventListener("click", handleRulesSave);
@@ -887,6 +945,22 @@ async function handleSubmit(event) {
     return;
   }
 
+  const budget = getBudgetHealth();
+  if (state.settings.monthlyBudgetLimit > 0 && price > budget.remaining) {
+    showConfirmModal({
+      eyebrow: t("budgetOverdraftEyebrow"),
+      title: t("budgetOverdraftTitle"),
+      message: t("budgetOverdraftMessage", { amount: formatCurrency(price) }),
+      confirmText: t("budgetOverdraftAction"),
+      onConfirm: () => addWaitingItem(productName, price),
+    });
+    return;
+  }
+
+  await addWaitingItem(productName, price);
+}
+
+async function addWaitingItem(productName, price) {
   const id = createId();
   const assignedWaitHours = getWaitHours(price);
   const dateAdded = new Date();
@@ -989,6 +1063,11 @@ function normalizeCurrencyCode(value) {
 function normalizeRegretSurveyDays(value) {
   const days = Number(value);
   return Number.isFinite(days) ? Math.round(days) : DEFAULT_SETTINGS.regretSurveyDays;
+}
+
+function normalizeBudgetResetDay(value) {
+  const day = Math.round(Number(value) || DEFAULT_SETTINGS.budgetResetDay);
+  return Math.min(31, Math.max(1, day));
 }
 
 function normalizeLanguage(value) {
@@ -1105,8 +1184,102 @@ function renderAuth() {
 }
 
 function renderNoSpendStreak() {
-  elements.heroStreak.textContent = t("streakLabel", { days: state.streak.currentStreak });
-  elements.heroLongestStreak.textContent = t("longestStreakLabel", { days: state.streak.longestStreak });
+  const current = state.streak.currentStreak;
+  const longest = state.streak.longestStreak;
+  const showStreak = current > 0 || longest > 0;
+  elements.heroStreakPill.hidden = !showStreak;
+  elements.heroStreak.textContent = t("streakLabel", { days: current });
+  elements.heroLongestStreak.textContent = t("longestStreakLabel", { days: longest });
+}
+
+function renderBudgetHealth() {
+  const budget = getBudgetHealth();
+
+  elements.budgetHealthCards.forEach((card) => {
+    const status = card.querySelector("[data-budget-health-status]");
+    const copy = card.querySelector("[data-budget-health-copy]");
+    const fill = card.querySelector("[data-budget-health-fill]");
+    const ghost = card.querySelector("[data-budget-health-ghost]");
+
+    card.classList.remove("is-safe", "is-caution", "is-critical", "is-over", "is-disabled");
+    card.classList.add(`is-${budget.state}`);
+    status.textContent = budget.statusText;
+    copy.textContent = budget.copyText;
+    fill.style.width = `${budget.healthPercent}%`;
+    ghost.style.left = `${budget.ghostLeftPercent}%`;
+    ghost.style.width = `${budget.ghostWidthPercent}%`;
+    ghost.hidden = budget.ghostWidthPercent <= 0;
+  });
+}
+
+function getBudgetHealth(extraPendingAmount = 0) {
+  const limit = state.settings.monthlyBudgetLimit;
+  if (limit <= 0) {
+    return {
+      state: "disabled",
+      statusText: t("budgetHealthTitle"),
+      copyText: t("budgetHealthSetup"),
+      remaining: 0,
+      projectedRemaining: 0,
+      healthPercent: 0,
+      ghostLeftPercent: 0,
+      ghostWidthPercent: 0,
+    };
+  }
+
+  const cycle = getCurrentBudgetCycle();
+  const spent = state.items
+    .filter((item) => item.status === "bought" && isDateInRange(item.boughtDate || item.statusChangedDate, cycle.start, cycle.end))
+    .reduce((sum, item) => sum + item.price, 0);
+  const pending = state.items
+    .filter((item) => item.status === "waiting")
+    .reduce((sum, item) => sum + item.price, 0) + extraPendingAmount;
+  const remaining = limit - spent;
+  const projectedRemaining = remaining - pending;
+  const healthPercent = Math.max(0, Math.min(100, (remaining / limit) * 100));
+  const projectedHealthPercent = Math.max(0, Math.min(100, (projectedRemaining / limit) * 100));
+  const ghostWidthPercent = Math.max(0, healthPercent - projectedHealthPercent);
+  const stateName = getBudgetHealthState(remaining, limit);
+
+  return {
+    state: stateName,
+    statusText: t(stateName === "over" ? "budgetHealthOver" : stateName === "critical" ? "budgetHealthCritical" : stateName === "caution" ? "budgetHealthCaution" : "budgetHealthSafe"),
+    copyText: pending > 0
+      ? `${t("budgetHealthCopy", { remaining: formatCurrency(remaining), limit: formatCurrency(limit) })}\n${t("budgetHealthGhostCopy", { projected: formatCurrency(projectedRemaining) })}`
+      : t("budgetHealthCopy", { remaining: formatCurrency(remaining), limit: formatCurrency(limit) }),
+    remaining,
+    projectedRemaining,
+    healthPercent,
+    ghostLeftPercent: projectedHealthPercent,
+    ghostWidthPercent,
+  };
+}
+
+function getBudgetHealthState(remaining, limit) {
+  const percent = (remaining / limit) * 100;
+  if (remaining <= 0) return "over";
+  if (percent < 20) return "critical";
+  if (percent < 50) return "caution";
+  return "safe";
+}
+
+function getCurrentBudgetCycle(referenceDate = new Date()) {
+  const resetThisMonth = getBudgetResetDate(referenceDate.getFullYear(), referenceDate.getMonth());
+  const start = referenceDate >= resetThisMonth ? resetThisMonth : getBudgetResetDate(referenceDate.getFullYear(), referenceDate.getMonth() - 1);
+  const nextReset = getBudgetResetDate(start.getFullYear(), start.getMonth() + 1);
+  const end = new Date(nextReset.getTime() - 1);
+  return { start, end };
+}
+
+function getBudgetResetDate(year, monthIndex) {
+  const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
+  const day = Math.min(state.settings.budgetResetDay, daysInMonth);
+  return new Date(year, monthIndex, day, 0, 0, 0, 0);
+}
+
+function isDateInRange(dateString, start, end) {
+  const timestamp = dateString ? new Date(dateString).getTime() : NaN;
+  return Number.isFinite(timestamp) && timestamp >= start.getTime() && timestamp <= end.getTime();
 }
 
 function handleSignOut() {
@@ -1484,6 +1657,7 @@ function renderAll() {
   renderSettings();
   renderAuth();
   renderNoSpendStreak();
+  renderBudgetHealth();
   updateCooldownHint();
   renderWaitingRoom();
   renderWallet();
@@ -1516,6 +1690,8 @@ function renderSettings() {
   elements.currencyCode.value = state.settings.currencyCode;
   elements.hourlyWage.value = state.settings.hourlyWage > 0 ? formatNumber(state.settings.hourlyWage) : "";
   elements.regretSurveyDays.value = state.settings.regretSurveyDays;
+  elements.monthlyBudgetLimit.value = state.settings.monthlyBudgetLimit > 0 ? formatNumber(state.settings.monthlyBudgetLimit) : "";
+  elements.budgetResetDay.value = state.settings.budgetResetDay;
   elements.rulesTable.innerHTML = "";
 
   state.settings.timeRules.forEach((rule, index) => {
