@@ -293,7 +293,6 @@ main {
     rgba(156, 163, 175, 0.42) 8px,
     rgba(156, 163, 175, 0.42) 16px
   );
-  animation: ghost-damage 700ms linear infinite;
 }
 
 .budget-health-card p {
@@ -340,16 +339,6 @@ main {
 
   50% {
     opacity: 0.55;
-  }
-}
-
-@keyframes ghost-damage {
-  from {
-    background-position: 0 0;
-  }
-
-  to {
-    background-position: 24px 0;
   }
 }
 
