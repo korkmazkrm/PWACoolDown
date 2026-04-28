@@ -3,6 +3,7 @@ const STORAGE_KEYS = {
   settings: "cooldown.settings",
   lastSeenAt: "cooldown.lastSeenAt",
   auth: "cooldown.auth",
+  streak: "cooldown.streak",
 };
 
 const LOCAL_API_BASE_URLS = ["https://localhost:7269/api", "http://localhost:5261/api"];
@@ -11,12 +12,14 @@ const API_BASE_URLS =
   (["localhost", "127.0.0.1"].includes(window.location.hostname) ? LOCAL_API_BASE_URLS : [`${window.location.origin}/api`]);
 
 const FREE_ITEM_LIMIT = 3;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const DEFAULT_SETTINGS = {
   allowEarlyCancel: true,
   currencyCode: "TL",
   hourlyWage: 0,
   language: "tr",
+  regretSurveyDays: 14,
   timeRules: [
     { min: 0, max: 500, hours: 12 },
     { min: 500.01, max: 5000, hours: 24 },
@@ -32,11 +35,16 @@ const TRANSLATIONS = {
     brandAria: "CoolDown ana sayfa",
     brandTagline: "Satın almadan önce düşün",
     installApp: "Uygulamayı Yükle",
+    iosInstallEyebrow: "iOS kurulumu",
+    iosInstallTitle: "Ana ekrana ekle",
+    iosInstallMessage: "iPhone veya iPad'de kurmak için Safari'de Paylaş butonuna dokun, ardından Ana Ekrana Ekle seçeneğini kullan.",
     heroEyebrow: "Flash sale baskısına mola ver",
     heroTitle: "Sepete değil, önce soğuma odasına.",
     heroCopy: "Alışveriş dürtülerini ürün kartlarına dönüştür, sayaç bitene kadar bekle ve gerçekten ihtiyacın olup olmadığını gör.",
     heroSummaryAria: "Kısa özet",
     savedSoFar: "Bugüne kadar kurtarılan",
+    streakLabel: "🔥 {days} Günlük Seri",
+    longestStreakLabel: "Rekor: {days} gün",
     tabsAria: "CoolDown ekranları",
     tabAdd: "Yeni İstek",
     tabWaiting: "Soğuma Odası",
@@ -60,6 +68,12 @@ const TRANSLATIONS = {
     signOutTitle: "Çıkış yapıldı",
     signOutMessage: "Hesabından güvenli şekilde çıkış yaptın.",
     authErrorTitle: "Üyelik işlemi tamamlanamadı",
+    streakResetEyebrow: "Harcamasız seri",
+    streakResetTitle: "İraden kırıldı, seri sıfırlandı!",
+    streakResetMessage: "Bu satın alma seriyi bozdu. Yeni seri yarın yeniden başlayabilir.",
+    streakCelebrationEyebrow: "Harcamasız seri",
+    streakCelebrationTitle: "🔥 {days} Günlük Seri",
+    streakCelebrationMessage: "Dün hiç satın alma yapmadın. Serini korudun, bugün de aynı çizgide kalabilirsin.",
     loginRequiredEyebrow: "Üyelik gerekli",
     loginRequiredTitle: "Login olmalısınız",
     loginRequiredMessage: "3 karttan sonra yeni kart eklemek için giriş yapmanız gerekiyor.",
@@ -94,6 +108,8 @@ const TRANSLATIONS = {
     earlySaved: "Erken pes ederek kurtarılan",
     totalBought: "Satın alınan toplam",
     successRate: "İrade başarı oranı",
+    regretRate: "Dürtüsel pişmanlık oranı",
+    regretNoData: "Henüz veri yok",
     historyEmpty: "Henüz tamamlanan karar yok.",
     settingsEyebrow: "Profil ve ayarlar",
     settingsTitle: "Kurallarını belirle",
@@ -106,6 +122,9 @@ const TRANSLATIONS = {
     hourlyWageLabel: "Saatlik kazanç",
     hourlyWagePlaceholder: "Örn: 250,00",
     hourlyWageHelp: "Ürün kartlarında bu ürünü almak için kaç saat çalışman gerektiği gösterilir.",
+    regretSurveyDaysLabel: "Pişmanlık anketi süresi",
+    regretSurveyDaysPlaceholder: "Örn: 14",
+    regretSurveyDaysHelp: "Satın aldıktan kaç gün sonra yüzleşme anketinin gösterileceğini belirler.",
     rulesEyebrow: "Parametrik süreler",
     rulesTitle: "Fiyat kuralları",
     ruleMin: "Minimum",
@@ -156,6 +175,9 @@ const TRANSLATIONS = {
     deleteConfirmAction: "Evet, Sil",
     boughtBadge: "Satın alındı",
     boughtMeta: "Bu ürün için satın alma kararı verildi. Kumbara toplamına eklenmedi.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
+    regretVoteHappy: "Pişmanlık oyu: İyi ki almışım",
+    regretVoteRegretted: "Pişmanlık oyu: Pişmanım",
+    regretVotePending: "Pişmanlık oyu: Bekliyor",
     savedFullBadge: "Tam süre bekledi",
     savedFullMeta: "Sayaç tamamlandıktan sonra satın alınmadı.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
     savedEarlyBadge: "Erken vazgeçti",
@@ -166,6 +188,11 @@ const TRANSLATIONS = {
     earlySavedTitle: "Güzel karar, parayı cebinde tuttun",
     earlyBoughtMessage: "{name} için sayaç bitmeden alışverişi tamamladın. Bir sonraki istekte süreyi sonuna kadar beklemek kararını daha netleştirebilir.",
     earlySavedMessage: "{name} için {amount} harcamaktan sayaç bitmeden vazgeçtin. Bu tutar kumbara raporuna eklendi.",
+    regretSurveyEyebrow: "Satın alma yüzleşmesi",
+    regretSurveyTitle: "Pişmanlık kontrolü",
+    regretSurveyQuestion: "Bu ürünü alalı {days} gün oldu. Gerçekten verdiğin paraya değdi mi?",
+    regretHappyAction: "İyi ki almışım",
+    regretRegrettedAction: "Pişmanım",
     settingsSavedEyebrow: "Ayarlar kaydedildi",
     rulesSavedTitle: "Ayarlarınız kaydedilmiştir",
     rulesSavedMessage: "Değişiklikler başarıyla kaydedildi.",
@@ -177,11 +204,16 @@ const TRANSLATIONS = {
     brandAria: "CoolDown home",
     brandTagline: "Think before you buy",
     installApp: "Install App",
+    iosInstallEyebrow: "iOS install",
+    iosInstallTitle: "Add to Home Screen",
+    iosInstallMessage: "To install on iPhone or iPad, tap the Share button in Safari, then choose Add to Home Screen.",
     heroEyebrow: "Pause the flash sale pressure",
     heroTitle: "Not in the cart yet. Into the cooldown room first.",
     heroCopy: "Turn shopping urges into product cards, wait until the timer ends, and see whether you really need them.",
     heroSummaryAria: "Quick summary",
     savedSoFar: "Saved so far",
+    streakLabel: "🔥 {days} Day Streak",
+    longestStreakLabel: "Record: {days} day(s)",
     tabsAria: "CoolDown screens",
     tabAdd: "New Wish",
     tabWaiting: "Cooldown Room",
@@ -205,6 +237,12 @@ const TRANSLATIONS = {
     signOutTitle: "Signed out",
     signOutMessage: "You signed out successfully.",
     authErrorTitle: "Account action failed",
+    streakResetEyebrow: "No-spend streak",
+    streakResetTitle: "Your willpower slipped, the streak reset!",
+    streakResetMessage: "This purchase broke the streak. A new streak can start again tomorrow.",
+    streakCelebrationEyebrow: "No-spend streak",
+    streakCelebrationTitle: "🔥 {days} Day Streak",
+    streakCelebrationMessage: "You made no purchases yesterday. You protected your streak, and you can keep it going today.",
     loginRequiredEyebrow: "Account required",
     loginRequiredTitle: "Please sign in",
     loginRequiredMessage: "You need to sign in to add more cards after 3 cards.",
@@ -239,6 +277,8 @@ const TRANSLATIONS = {
     earlySaved: "Saved by canceling early",
     totalBought: "Total purchased",
     successRate: "Willpower success rate",
+    regretRate: "Impulsive regret rate",
+    regretNoData: "No data yet",
     historyEmpty: "No completed decisions yet.",
     settingsEyebrow: "Profile and settings",
     settingsTitle: "Set your rules",
@@ -251,6 +291,9 @@ const TRANSLATIONS = {
     hourlyWageLabel: "Hourly income",
     hourlyWagePlaceholder: "E.g. 250,00",
     hourlyWageHelp: "Product cards will show how many hours you need to work to buy the item.",
+    regretSurveyDaysLabel: "Regret survey delay",
+    regretSurveyDaysPlaceholder: "E.g. 14",
+    regretSurveyDaysHelp: "Sets how many days after a purchase the reflection survey appears.",
     rulesEyebrow: "Parametric durations",
     rulesTitle: "Price rules",
     ruleMin: "Minimum",
@@ -301,6 +344,9 @@ const TRANSLATIONS = {
     deleteConfirmAction: "Yes, Delete",
     boughtBadge: "Purchased",
     boughtMeta: "A purchase decision was made for this item. It was not added to the piggy bank total.\nCreated: {createdAt}\nDecision date: {statusDate}",
+    regretVoteHappy: "Regret vote: Glad I bought it",
+    regretVoteRegretted: "Regret vote: I regret it",
+    regretVotePending: "Regret vote: Pending",
     savedFullBadge: "Waited full time",
     savedFullMeta: "Not purchased after the timer ended.\nCreated: {createdAt}\nDecision date: {statusDate}",
     savedEarlyBadge: "Canceled early",
@@ -311,6 +357,11 @@ const TRANSLATIONS = {
     earlySavedTitle: "Good call, you kept the money",
     earlyBoughtMessage: "You completed the purchase for {name} before the timer ended. Waiting until the end next time may make the decision clearer.",
     earlySavedMessage: "You canceled {name} before spending {amount}. This amount was added to your piggy bank report.",
+    regretSurveyEyebrow: "Purchase reflection",
+    regretSurveyTitle: "Regret check",
+    regretSurveyQuestion: "It has been {days} day(s) since you bought this item. Was it really worth the money?",
+    regretHappyAction: "Glad I bought it",
+    regretRegrettedAction: "I regret it",
     settingsSavedEyebrow: "Settings saved",
     rulesSavedTitle: "Your settings have been saved",
     rulesSavedMessage: "Changes were saved successfully.",
@@ -328,6 +379,15 @@ const state = {
   walletFilter: "all",
   lastReturnCheckAt: 0,
   auth: null,
+  regretSurveyQueue: [],
+  activeRegretSurveyItemId: null,
+  pendingStreakCelebrationDays: null,
+  streak: {
+    lastPurchaseDate: null,
+    currentStreak: 0,
+    longestStreak: 0,
+    lastStreakCheckDate: null,
+  },
 };
 
 const elements = {
@@ -356,12 +416,16 @@ const elements = {
   totalBought: document.querySelector("#totalBought"),
   successRate: document.querySelector("#successRate"),
   successBar: document.querySelector("#successBar"),
+  regretRate: document.querySelector("#regretRate"),
   heroSavedTotal: document.querySelector("#heroSavedTotal"),
   heroSuccessRate: document.querySelector("#heroSuccessRate"),
+  heroStreak: document.querySelector("#heroStreak"),
+  heroLongestStreak: document.querySelector("#heroLongestStreak"),
   allowEarlyCancel: document.querySelector("#allowEarlyCancel"),
   languageSelect: document.querySelector("#languageSelect"),
   currencyCode: document.querySelector("#currencyCode"),
   hourlyWage: document.querySelector("#hourlyWage"),
+  regretSurveyDays: document.querySelector("#regretSurveyDays"),
   rulesTable: document.querySelector("#rulesTable"),
   settingsDrawer: document.querySelector("#settingsDrawer"),
   settingsCloseButton: document.querySelector("#settingsCloseButton"),
@@ -388,6 +452,14 @@ const elements = {
   modalCloseButton: document.querySelector("#modalCloseButton"),
   modalCancelButton: document.querySelector("#modalCancelButton"),
   modalOkButton: document.querySelector("#modalOkButton"),
+  regretSurveyModal: document.querySelector("#regretSurveyModal"),
+  regretSurveyImage: document.querySelector("#regretSurveyImage"),
+  regretSurveyImagePlaceholder: document.querySelector("#regretSurveyImagePlaceholder"),
+  regretSurveyProductName: document.querySelector("#regretSurveyProductName"),
+  regretSurveyPrice: document.querySelector("#regretSurveyPrice"),
+  regretSurveyQuestion: document.querySelector("#regretSurveyQuestion"),
+  regretHappyButton: document.querySelector("#regretHappyButton"),
+  regretRegrettedButton: document.querySelector("#regretRegrettedButton"),
   productCardTemplate: document.querySelector("#productCardTemplate"),
 };
 
@@ -395,12 +467,17 @@ document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   loadState();
+  loadStreakState();
   loadAuthState();
   bindEvents();
+  updateNoSpendStreak();
   renderAll();
+  showPendingStreakCelebration();
+  configureInstallButton();
   handleShareTargetLaunch();
   startCountdowns();
   notifyExpiredWhileAway();
+  checkRegretSurveys();
   persistLastSeenAt();
   registerServiceWorker();
 }
@@ -414,6 +491,19 @@ function loadState() {
 
 function loadAuthState() {
   state.auth = readJson(STORAGE_KEYS.auth, null);
+}
+
+function loadStreakState() {
+  const storedStreak = readJson(STORAGE_KEYS.streak, {});
+  const latestPurchaseDate = getLatestPurchaseDate();
+  const lastPurchaseDate = getLaterDateString(storedStreak.lastPurchaseDate, latestPurchaseDate);
+  state.streak = {
+    lastPurchaseDate,
+    currentStreak: Math.max(0, Number(storedStreak.currentStreak) || 0),
+    longestStreak: Math.max(0, Number(storedStreak.longestStreak) || 0),
+    lastStreakCheckDate: storedStreak.lastStreakCheckDate || getLocalDateKey(new Date()),
+  };
+  saveStreakState();
 }
 
 function readJson(key, fallback) {
@@ -436,6 +526,7 @@ function normalizeSettings(settings) {
     currencyCode: normalizeCurrencyCode(merged.currencyCode),
     hourlyWage: Math.max(0, Number(merged.hourlyWage) || 0),
     language: normalizeLanguage(merged.language),
+    regretSurveyDays: normalizeRegretSurveyDays(merged.regretSurveyDays),
     timeRules: (Array.isArray(merged.timeRules) ? merged.timeRules : DEFAULT_SETTINGS.timeRules)
       .map((rule, index) => ({
         min: Number(rule.min) || 0,
@@ -449,6 +540,10 @@ function normalizeSettings(settings) {
 function normalizeItem(item) {
   const assignedWaitHours = Number(item.assignedWaitHours) || getWaitHours(Number(item.price) || 0);
   const dateAdded = item.dateAdded || new Date().toISOString();
+  const status = item.status || "waiting";
+  const boughtDate = status === "bought" ? item.boughtDate || item.statusChangedDate || dateAdded : item.boughtDate || null;
+  const regretStatus = ["pending", "happy", "regretted"].includes(item.regretStatus) ? item.regretStatus : "pending";
+
   return {
     id: item.id || createId(),
     productName: item.productName || t("unnamedProduct"),
@@ -457,8 +552,10 @@ function normalizeItem(item) {
     dateAdded,
     assignedWaitHours,
     expireDate: item.expireDate || new Date(new Date(dateAdded).getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString(),
-    status: item.status || "waiting",
-    statusChangedDate: item.statusChangedDate || (item.status && item.status !== "waiting" ? dateAdded : null),
+    status,
+    statusChangedDate: item.statusChangedDate || (status !== "waiting" ? dateAdded : null),
+    boughtDate,
+    regretStatus,
   };
 }
 
@@ -470,6 +567,7 @@ function saveSettings() {
       currencyCode: state.settings.currencyCode,
       hourlyWage: state.settings.hourlyWage,
       language: state.settings.language,
+      regretSurveyDays: state.settings.regretSurveyDays,
       timeRules: state.settings.timeRules.map((rule) => ({
         ...rule,
         max: rule.max === Infinity ? "Infinity" : rule.max,
@@ -480,6 +578,18 @@ function saveSettings() {
 
 function saveItems() {
   localStorage.setItem(STORAGE_KEYS.items, JSON.stringify(state.items));
+}
+
+function saveStreakState() {
+  localStorage.setItem(
+    STORAGE_KEYS.streak,
+    JSON.stringify({
+      lastPurchaseDate: state.streak.lastPurchaseDate,
+      currentStreak: state.streak.currentStreak,
+      longestStreak: state.streak.longestStreak,
+      lastStreakCheckDate: state.streak.lastStreakCheckDate,
+    }),
+  );
 }
 
 function bindEvents() {
@@ -564,6 +674,13 @@ function bindEvents() {
     renderAll();
   });
 
+  elements.regretSurveyDays.addEventListener("change", () => {
+    state.settings.regretSurveyDays = normalizeRegretSurveyDays(elements.regretSurveyDays.value);
+    saveSettings();
+    renderSettings();
+    checkRegretSurveys();
+  });
+
   elements.saveRulesButton.addEventListener("click", handleRulesSave);
   elements.clearDataButton.addEventListener("click", handleClearData);
   elements.settingsCloseButton.addEventListener("click", closeSettingsDrawer);
@@ -586,6 +703,8 @@ function bindEvents() {
   elements.signInForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signin"));
   elements.signUpForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signup"));
   elements.signOutButton.addEventListener("click", handleSignOut);
+  elements.regretHappyButton.addEventListener("click", () => answerRegretSurvey("happy"));
+  elements.regretRegrettedButton.addEventListener("click", () => answerRegretSurvey("regretted"));
   elements.modalCloseButton.addEventListener("click", hideFeedbackModal);
   elements.modalCancelButton.addEventListener("click", hideFeedbackModal);
 
@@ -596,11 +715,32 @@ function bindEvents() {
   });
 
   elements.installButton.addEventListener("click", async () => {
-    if (!state.deferredInstallPrompt) return;
+    if (!state.deferredInstallPrompt) {
+      if (isIosDevice()) {
+        showIosInstallInstructions();
+      }
+      return;
+    }
+
     state.deferredInstallPrompt.prompt();
     await state.deferredInstallPrompt.userChoice;
     state.deferredInstallPrompt = null;
     elements.installButton.hidden = true;
+  });
+}
+
+function configureInstallButton() {
+  if (isIosDevice() && !isStandaloneApp()) {
+    elements.installButton.hidden = false;
+  }
+}
+
+function showIosInstallInstructions() {
+  showInfoModal({
+    eyebrow: t("iosInstallEyebrow"),
+    title: t("iosInstallTitle"),
+    message: t("iosInstallMessage"),
+    success: true,
   });
 }
 
@@ -760,6 +900,8 @@ async function handleSubmit(event) {
     expireDate: new Date(dateAdded.getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString(),
     status: "waiting",
     statusChangedDate: null,
+    boughtDate: null,
+    regretStatus: "pending",
   };
 
   if (state.selectedImage) {
@@ -842,6 +984,11 @@ function normalizeCurrencyCode(value) {
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "");
   return code || DEFAULT_SETTINGS.currencyCode;
+}
+
+function normalizeRegretSurveyDays(value) {
+  const days = Number(value);
+  return Number.isFinite(days) ? Math.round(days) : DEFAULT_SETTINGS.regretSurveyDays;
 }
 
 function normalizeLanguage(value) {
@@ -957,6 +1104,11 @@ function renderAuth() {
   elements.authUserEmail.textContent = isSignedIn ? state.auth.email : "";
 }
 
+function renderNoSpendStreak() {
+  elements.heroStreak.textContent = t("streakLabel", { days: state.streak.currentStreak });
+  elements.heroLongestStreak.textContent = t("longestStreakLabel", { days: state.streak.longestStreak });
+}
+
 function handleSignOut() {
   state.auth = null;
   localStorage.removeItem(STORAGE_KEYS.auth);
@@ -980,6 +1132,10 @@ function handleDropzoneClick(event) {
 
 function isIosDevice() {
   return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isStandaloneApp() {
+  return window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
 }
 
 function showImageSourceModal() {
@@ -1006,7 +1162,11 @@ function handleAppReturn() {
   }
 
   state.lastReturnCheckAt = now;
+  updateNoSpendStreak();
+  renderNoSpendStreak();
+  showPendingStreakCelebration();
   notifyExpiredWhileAway();
+  checkRegretSurveys();
   persistLastSeenAt();
   renderWaitingRoom();
 }
@@ -1036,6 +1196,94 @@ function notifyExpiredWhileAway() {
   });
 }
 
+function checkRegretSurveys() {
+  if (!elements.regretSurveyModal.hidden || state.regretSurveyQueue.length) {
+    return;
+  }
+
+  const now = Date.now();
+  state.regretSurveyQueue = state.items
+    .filter((item) => isRegretSurveyDue(item, now))
+    .sort((first, second) => new Date(first.boughtDate).getTime() - new Date(second.boughtDate).getTime())
+    .map((item) => item.id);
+
+  showNextRegretSurvey();
+}
+
+function isRegretSurveyDue(item, now = Date.now()) {
+  if (item.status !== "bought" || item.regretStatus !== "pending" || !item.boughtDate) {
+    return false;
+  }
+
+  const boughtMs = new Date(item.boughtDate).getTime();
+  if (!Number.isFinite(boughtMs)) {
+    return false;
+  }
+
+  return now - boughtMs >= state.settings.regretSurveyDays * DAY_MS;
+}
+
+async function showNextRegretSurvey() {
+  const itemId = state.regretSurveyQueue.shift();
+  const item = state.items.find((candidate) => candidate.id === itemId);
+  if (!item) {
+    state.activeRegretSurveyItemId = null;
+    elements.regretSurveyModal.hidden = true;
+    if (state.regretSurveyQueue.length) {
+      showNextRegretSurvey();
+    }
+    return;
+  }
+
+  state.activeRegretSurveyItemId = item.id;
+  elements.regretSurveyProductName.textContent = item.productName;
+  elements.regretSurveyPrice.textContent = formatRegretSurveyPrice(item.price);
+  elements.regretSurveyQuestion.textContent = t("regretSurveyQuestion", { days: getDaysSince(item.boughtDate) });
+  elements.regretSurveyImage.alt = t("imageAlt", { name: item.productName });
+  elements.regretSurveyImage.hidden = true;
+  elements.regretSurveyImage.removeAttribute("src");
+  elements.regretSurveyImagePlaceholder.hidden = false;
+  elements.regretSurveyImagePlaceholder.textContent = item.productName;
+
+  if (item.hasImage) {
+    const imageUrl = await loadImageUrl(item.id);
+    if (state.activeRegretSurveyItemId === item.id && imageUrl) {
+      elements.regretSurveyImage.src = imageUrl;
+      elements.regretSurveyImage.hidden = false;
+      elements.regretSurveyImagePlaceholder.hidden = true;
+    }
+  }
+
+  elements.regretSurveyModal.hidden = false;
+  elements.regretHappyButton.focus();
+}
+
+function answerRegretSurvey(regretStatus) {
+  const item = state.items.find((candidate) => candidate.id === state.activeRegretSurveyItemId);
+  if (!item) {
+    showNextRegretSurvey();
+    return;
+  }
+
+  item.regretStatus = regretStatus;
+  saveItems();
+  renderWallet();
+  showNextRegretSurvey();
+}
+
+function getDaysSince(dateString) {
+  const timestamp = new Date(dateString).getTime();
+  if (!Number.isFinite(timestamp)) {
+    return state.settings.regretSurveyDays;
+  }
+
+  return Math.max(1, Math.floor((Date.now() - timestamp) / DAY_MS));
+}
+
+function formatRegretSurveyPrice(value) {
+  return `${Number(value || 0).toFixed(2).replace(".", ",")} ${state.settings.currencyCode}`;
+}
+
 function formatExpiredItemNames(items) {
   const visibleNames = items.slice(0, 3).map((item) => item.productName);
   const remainingCount = items.length - visibleNames.length;
@@ -1050,6 +1298,115 @@ function readLastSeenMs() {
 
 function persistLastSeenAt() {
   localStorage.setItem(STORAGE_KEYS.lastSeenAt, new Date().toISOString());
+}
+
+function updateNoSpendStreak() {
+  const today = startOfLocalDay(new Date());
+  const yesterday = addDays(today, -1);
+  let lastChecked = parseLocalDateKey(state.streak.lastStreakCheckDate) || today;
+
+  if (lastChecked >= today) {
+    return;
+  }
+
+  const purchaseDates = getPurchaseDateKeys();
+  let streakIncreased = false;
+  let cursor = new Date(lastChecked);
+  while (cursor <= yesterday) {
+    if (purchaseDates.has(getLocalDateKey(cursor))) {
+      state.streak.currentStreak = 0;
+    } else {
+      state.streak.currentStreak += 1;
+      streakIncreased = true;
+      state.streak.longestStreak = Math.max(state.streak.longestStreak, state.streak.currentStreak);
+    }
+    cursor = addDays(cursor, 1);
+  }
+
+  state.streak.lastStreakCheckDate = getLocalDateKey(today);
+  state.pendingStreakCelebrationDays = streakIncreased ? state.streak.currentStreak : null;
+  saveStreakState();
+}
+
+function showPendingStreakCelebration() {
+  if (!state.pendingStreakCelebrationDays) {
+    return;
+  }
+
+  const days = state.pendingStreakCelebrationDays;
+  state.pendingStreakCelebrationDays = null;
+  showInfoModal({
+    eyebrow: t("streakCelebrationEyebrow"),
+    title: t("streakCelebrationTitle", { days }),
+    message: t("streakCelebrationMessage"),
+    success: true,
+  });
+}
+
+function recordPurchaseForStreak(dateString) {
+  state.streak.lastPurchaseDate = dateString;
+  state.streak.currentStreak = 0;
+  state.pendingStreakCelebrationDays = null;
+  saveStreakState();
+}
+
+function getPurchaseDateKeys() {
+  return new Set(
+    state.items
+      .filter((item) => item.status === "bought")
+      .map((item) => item.boughtDate || item.statusChangedDate)
+      .filter(Boolean)
+      .filter((dateString) => Number.isFinite(new Date(dateString).getTime()))
+      .map((dateString) => getLocalDateKey(new Date(dateString))),
+  );
+}
+
+function getLatestPurchaseDate() {
+  return state.items
+    .filter((item) => item.status === "bought")
+    .map((item) => item.boughtDate || item.statusChangedDate)
+    .filter(Boolean)
+    .sort((first, second) => new Date(second).getTime() - new Date(first).getTime())[0] || null;
+}
+
+function getLaterDateString(firstDate, secondDate) {
+  const firstMs = firstDate ? new Date(firstDate).getTime() : 0;
+  const secondMs = secondDate ? new Date(secondDate).getTime() : 0;
+  const hasFirst = Number.isFinite(firstMs) && firstMs > 0;
+  const hasSecond = Number.isFinite(secondMs) && secondMs > 0;
+
+  if (!hasFirst && !hasSecond) return null;
+  if (!hasSecond) return firstDate || null;
+  if (!hasFirst) return secondDate || null;
+  return firstMs >= secondMs ? firstDate : secondDate;
+}
+
+function startOfLocalDay(date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function addDays(date, days) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function getLocalDateKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function parseLocalDateKey(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey || "")) {
+    return null;
+  }
+
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function resetForm() {
@@ -1126,6 +1483,7 @@ function renderAll() {
   applyTranslations();
   renderSettings();
   renderAuth();
+  renderNoSpendStreak();
   updateCooldownHint();
   renderWaitingRoom();
   renderWallet();
@@ -1157,6 +1515,7 @@ function renderSettings() {
   elements.languageSelect.value = state.settings.language;
   elements.currencyCode.value = state.settings.currencyCode;
   elements.hourlyWage.value = state.settings.hourlyWage > 0 ? formatNumber(state.settings.hourlyWage) : "";
+  elements.regretSurveyDays.value = state.settings.regretSurveyDays;
   elements.rulesTable.innerHTML = "";
 
   state.settings.timeRules.forEach((rule, index) => {
@@ -1214,12 +1573,16 @@ async function renderWallet() {
   const totalBought = boughtItems.reduce((sum, item) => sum + item.price, 0);
   const completedDecisions = completedItems.length;
   const success = completedDecisions ? Math.round((savedItems.length / completedDecisions) * 100) : 0;
+  const answeredRegretItems = boughtItems.filter((item) => item.regretStatus === "happy" || item.regretStatus === "regretted");
+  const regrettedCount = answeredRegretItems.filter((item) => item.regretStatus === "regretted").length;
+  const regretRate = answeredRegretItems.length ? Math.round((regrettedCount / answeredRegretItems.length) * 100) : null;
 
   elements.totalSaved.textContent = formatCurrency(totalSaved);
   elements.earlySaved.textContent = formatCurrency(earlySaved);
   elements.totalBought.textContent = formatCurrency(totalBought);
   elements.successRate.textContent = `%${success}`;
   elements.successBar.style.width = `${success}%`;
+  elements.regretRate.textContent = regretRate === null ? t("regretNoData") : `%${regretRate}`;
   elements.heroSavedTotal.textContent = formatCurrency(totalSaved);
   elements.heroSuccessRate.textContent = t("heroSuccess", { success });
 }
@@ -1267,6 +1630,12 @@ async function createProductCard(item, mode) {
     badge.textContent = historyCopy.badge;
     badge.classList.add("done");
     meta.textContent = withWorkTime(item, historyCopy.meta);
+    if (item.status === "bought") {
+      const regretVoteBadge = createRegretVoteBadge(item);
+      if (regretVoteBadge) {
+        imageWrap.append(regretVoteBadge);
+      }
+    }
     actions.append(createActionButton(t("deleteButton"), "danger-button", () => confirmDeleteItem(item.id)));
   }
 
@@ -1297,6 +1666,40 @@ function getHistoryCopy(item) {
     badge: t("savedEarlyBadge"),
     meta: t("savedEarlyMeta", dates),
   };
+}
+
+function createRegretVoteBadge(item) {
+  const vote = getRegretVoteCopy(item);
+  if (!vote) {
+    return null;
+  }
+
+  const badge = document.createElement("span");
+  badge.className = `regret-vote-badge ${vote.className}`;
+  badge.textContent = vote.icon;
+  badge.title = vote.label;
+  badge.setAttribute("aria-label", vote.label);
+  return badge;
+}
+
+function getRegretVoteCopy(item) {
+  if (item.regretStatus === "happy") {
+    return {
+      className: "happy",
+      icon: "👍",
+      label: t("regretVoteHappy"),
+    };
+  }
+
+  if (item.regretStatus === "regretted") {
+    return {
+      className: "regretted",
+      icon: "👎",
+      label: t("regretVoteRegretted"),
+    };
+  }
+
+  return null;
 }
 
 function withWorkTime(item, text) {
@@ -1380,7 +1783,9 @@ function handleDecision(id, status) {
   const isEarlyDecision = getRemainingMs(item) > 0;
   updateItemStatus(id, status);
 
-  if (isEarlyDecision) {
+  if (status === "bought") {
+    showStreakResetModal();
+  } else if (isEarlyDecision) {
     showEarlyDecisionModal(item, status);
   }
 }
@@ -1388,8 +1793,15 @@ function handleDecision(id, status) {
 function updateItemStatus(id, status) {
   const item = state.items.find((candidate) => candidate.id === id);
   if (!item) return;
+  const changedAt = new Date().toISOString();
+
   item.status = status;
-  item.statusChangedDate = new Date().toISOString();
+  item.statusChangedDate = changedAt;
+  if (status === "bought") {
+    item.boughtDate = changedAt;
+    item.regretStatus = "pending";
+    recordPurchaseForStreak(changedAt);
+  }
   saveItems();
   renderAll();
 }
@@ -1455,6 +1867,14 @@ function showEarlyDecisionModal(item, status) {
     : t("earlySavedMessage", { name: item.productName, amount: formatCurrency(item.price) });
   elements.feedbackModal.hidden = false;
   elements.modalOkButton.focus();
+}
+
+function showStreakResetModal() {
+  showInfoModal({
+    eyebrow: t("streakResetEyebrow"),
+    title: t("streakResetTitle"),
+    message: t("streakResetMessage"),
+  });
 }
 
 function showValidationModal(productName, price) {

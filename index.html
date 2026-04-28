@@ -43,6 +43,10 @@
             <span data-i18n="savedSoFar">Bugüne kadar kurtarılan</span>
             <strong id="heroSavedTotal">0,00 TL</strong>
             <small id="heroSuccessRate">%0 irade başarısı</small>
+            <div class="streak-pill">
+              <strong id="heroStreak">🔥 0 Günlük Seri</strong>
+              <small id="heroLongestStreak">Rekor: 0 gün</small>
+            </div>
           </div>
         </section>
       </header>
@@ -132,6 +136,10 @@
               <strong id="successRate">%0</strong>
               <div class="progress-bar" aria-hidden="true"><span id="successBar"></span></div>
             </article>
+            <article class="report-card">
+              <span data-i18n="regretRate">Dürtüsel pişmanlık oranı</span>
+              <strong id="regretRate" data-i18n="regretNoData">Henüz veri yok</strong>
+            </article>
           </div>
 
           <div class="product-grid saved-grid" id="savedGrid"></div>
@@ -187,6 +195,14 @@
                   <input id="hourlyWage" type="text" inputmode="decimal" placeholder="Örn: 250,00" data-i18n-placeholder="hourlyWagePlaceholder" />
                 </label>
                 <p class="setting-help" data-i18n="hourlyWageHelp">Ürün kartlarında bu ürünü almak için kaç saat çalışman gerektiği gösterilir.</p>
+              </section>
+
+              <section class="card-panel">
+                <label>
+                  <span data-i18n="regretSurveyDaysLabel">Pişmanlık anketi süresi</span>
+                  <input id="regretSurveyDays" type="number" inputmode="numeric" step="1" placeholder="Örn: 14" data-i18n-placeholder="regretSurveyDaysPlaceholder" />
+                </label>
+                <p class="setting-help" data-i18n="regretSurveyDaysHelp">Satın aldıktan kaç gün sonra yüzleşme anketinin gösterileceğini belirler.</p>
               </section>
 
               <section class="card-panel">
@@ -272,6 +288,29 @@
         </div>
       </section>
     </div>
+
+    <div class="modal-backdrop regret-survey-backdrop" id="regretSurveyModal" hidden>
+      <section class="feedback-modal regret-survey-modal" role="dialog" aria-modal="true" aria-labelledby="regretSurveyTitle" aria-describedby="regretSurveyQuestion">
+        <p class="eyebrow" data-i18n="regretSurveyEyebrow">Satın alma yüzleşmesi</p>
+        <h2 id="regretSurveyTitle" data-i18n="regretSurveyTitle">Pişmanlık kontrolü</h2>
+        <div class="regret-product">
+          <div class="regret-image-wrap">
+            <img id="regretSurveyImage" alt="" hidden />
+            <div class="product-placeholder" id="regretSurveyImagePlaceholder"></div>
+          </div>
+          <div>
+            <h3 id="regretSurveyProductName"></h3>
+            <strong id="regretSurveyPrice"></strong>
+          </div>
+        </div>
+        <p id="regretSurveyQuestion"></p>
+        <div class="modal-actions">
+          <button class="secondary-button" id="regretHappyButton" type="button" data-i18n="regretHappyAction">İyi ki almışım</button>
+          <button class="primary-button" id="regretRegrettedButton" type="button" data-i18n="regretRegrettedAction">Pişmanım</button>
+        </div>
+      </section>
+    </div>
+
     <div class="modal-backdrop" id="imageSourceModal" hidden>
       <section class="feedback-modal image-source-modal" role="dialog" aria-modal="true" aria-labelledby="imageSourceTitle">
         <h2 id="imageSourceTitle" data-i18n="imageSourceTitle">Görsel Kaynağı Seç</h2>
