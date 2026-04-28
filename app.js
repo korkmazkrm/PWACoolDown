@@ -398,6 +398,7 @@ function init() {
   loadAuthState();
   bindEvents();
   renderAll();
+  handleShareTargetLaunch();
   startCountdowns();
   notifyExpiredWhileAway();
   persistLastSeenAt();
@@ -702,6 +703,33 @@ function restoreActiveTabFromVisibleScreen() {
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", String(isActive));
   });
+}
+
+function handleShareTargetLaunch() {
+  const params = new URLSearchParams(window.location.search);
+  const sharedTitle = params.get("title")?.trim() || "";
+  const sharedText = params.get("text")?.trim() || "";
+  const sharedUrl = params.get("url")?.trim() || "";
+
+  if (!sharedTitle && !sharedText && !sharedUrl) {
+    return;
+  }
+
+  const sharedProductName = buildSharedProductName(sharedTitle, sharedText, sharedUrl);
+  if (sharedProductName) {
+    showTab("add");
+    elements.productName.value = sharedProductName;
+    elements.price.focus();
+  }
+
+  window.history.replaceState(window.history.state, document.title, `${window.location.pathname}${window.location.hash}`);
+}
+
+function buildSharedProductName(title, text, url) {
+  return [title, text, url]
+    .filter(Boolean)
+    .filter((part, index, parts) => parts.indexOf(part) === index)
+    .join(" - ");
 }
 
 async function handleSubmit(event) {
