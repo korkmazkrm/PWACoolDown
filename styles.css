@@ -549,9 +549,11 @@ select:focus {
   justify-content: flex-end;
   background: rgba(17, 24, 39, 0.5);
   backdrop-filter: blur(10px);
+  animation: drawer-backdrop-in 340ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .settings-drawer-backdrop.is-closing {
+  animation: drawer-backdrop-out 340ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   pointer-events: none;
 }
 
@@ -595,6 +597,30 @@ select:focus {
 
   to {
     transform: translateX(100%);
+  }
+}
+
+@keyframes drawer-backdrop-in {
+  from {
+    background: rgba(17, 24, 39, 0);
+    backdrop-filter: blur(0);
+  }
+
+  to {
+    background: rgba(17, 24, 39, 0.5);
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes drawer-backdrop-out {
+  from {
+    background: rgba(17, 24, 39, 0.5);
+    backdrop-filter: blur(10px);
+  }
+
+  to {
+    background: rgba(17, 24, 39, 0);
+    backdrop-filter: blur(0);
   }
 }
 
