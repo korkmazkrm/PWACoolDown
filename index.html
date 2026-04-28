@@ -364,6 +364,27 @@
       </section>
     </div>
 
+    <div class="modal-backdrop image-lightbox-backdrop" id="imageLightbox" hidden>
+      <div
+        class="image-lightbox"
+        role="dialog"
+        aria-modal="true"
+        data-i18n-aria-label="imageLightboxLabel"
+        aria-label="Ürün görseli — büyük önizleme"
+      >
+        <button
+          class="modal-close image-lightbox-close"
+          id="imageLightboxClose"
+          type="button"
+          data-i18n-aria-label="closeMessage"
+          aria-label="Mesajı kapat"
+        >
+          ×
+        </button>
+        <img id="imageLightboxImg" class="image-lightbox-img" alt="" />
+      </div>
+    </div>
+
     <template id="productCardTemplate">
       <article class="product-card">
         <div class="product-image-wrap">

@@ -170,6 +170,7 @@ const TRANSLATIONS = {
     invalidFormMessage: "Devam etmek için {fields} girmen gerekiyor.",
     and: " ve ",
     imageAlt: "{name} görseli",
+    imageLightboxLabel: "Ürün görseli — büyük önizleme",
     imageMissing: "Görsel bulunamadı",
     expired: "Süre doldu",
     expiredReturnEyebrow: "Soğuma süresi tamamlandı",
@@ -357,6 +358,7 @@ const TRANSLATIONS = {
     invalidFormMessage: "Please enter {fields} to continue.",
     and: " and ",
     imageAlt: "{name} image",
+    imageLightboxLabel: "Product image — enlarged preview",
     imageMissing: "Image not found",
     expired: "Time is up",
     expiredReturnEyebrow: "Cooldown completed",
@@ -439,6 +441,9 @@ const elements = {
   cameraOptionButton: document.querySelector("#cameraOptionButton"),
   galleryOptionButton: document.querySelector("#galleryOptionButton"),
   imageSourceCancelButton: document.querySelector("#imageSourceCancelButton"),
+  imageLightbox: document.querySelector("#imageLightbox"),
+  imageLightboxImg: document.querySelector("#imageLightboxImg"),
+  imageLightboxClose: document.querySelector("#imageLightboxClose"),
   imagePreview: document.querySelector("#imagePreview"),
   productName: document.querySelector("#productName"),
   price: document.querySelector("#price"),
@@ -670,6 +675,12 @@ function bindEvents() {
     elements.cameraInput.click();
   });
   elements.imageSourceCancelButton.addEventListener("click", hideImageSourceModal);
+  elements.imageLightboxClose.addEventListener("click", hideImageLightbox);
+  elements.imageLightbox.addEventListener("click", (event) => {
+    if (event.target === elements.imageLightbox) {
+      hideImageLightbox();
+    }
+  });
   document.addEventListener("visibilitychange", handleVisibilityChange);
   window.addEventListener("pagehide", persistLastSeenAt);
   window.addEventListener("pageshow", handleAppReturn);
@@ -755,6 +766,10 @@ function bindEvents() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (!elements.imageLightbox.hidden) {
+        hideImageLightbox();
+        return;
+      }
       closeOpenDrawers();
     }
   });
@@ -1782,6 +1797,12 @@ async function createProductCard(item, mode) {
     if (imageUrl) {
       image.src = imageUrl;
       image.alt = t("imageAlt", { name: item.productName });
+      image.classList.add("is-zoomable");
+      image.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openImageLightbox(imageUrl, image.alt);
+      });
     } else {
       renderImagePlaceholder(imageWrap, image, t("imageMissing"));
     }
@@ -2105,6 +2126,23 @@ function prepareInfoModal() {
 function hideFeedbackModal() {
   prepareInfoModal();
   elements.feedbackModal.hidden = true;
+}
+
+function openImageLightbox(src, altText) {
+  if (!src) {
+    return;
+  }
+
+  elements.imageLightboxImg.src = src;
+  elements.imageLightboxImg.alt = altText || "";
+  elements.imageLightbox.hidden = false;
+  elements.imageLightboxClose.focus();
+}
+
+function hideImageLightbox() {
+  elements.imageLightbox.hidden = true;
+  elements.imageLightboxImg.removeAttribute("src");
+  elements.imageLightboxImg.alt = "";
 }
 
 function formatDate(dateString) {

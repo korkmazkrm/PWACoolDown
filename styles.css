@@ -533,6 +533,10 @@ select:focus {
   object-fit: cover;
 }
 
+.product-image.is-zoomable {
+  cursor: zoom-in;
+}
+
 .product-placeholder {
   display: grid;
   height: 100%;
@@ -983,6 +987,38 @@ select:focus {
 
 .image-source-modal {
   text-align: left;
+}
+
+.image-lightbox-backdrop {
+  z-index: 110;
+  padding: 20px;
+}
+
+.image-lightbox {
+  position: relative;
+  max-width: min(96vw, 960px);
+  max-height: 92vh;
+  margin: 0;
+}
+
+.image-lightbox .modal-close {
+  top: -6px;
+  right: -6px;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.2);
+}
+
+.image-lightbox-img {
+  display: block;
+  max-width: 100%;
+  max-height: min(88vh, 900px);
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+  border-radius: var(--radius-lg);
+  box-shadow: 0 28px 64px rgba(0, 0, 0, 0.45);
 }
 
 .source-actions {
