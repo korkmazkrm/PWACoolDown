@@ -176,7 +176,11 @@
                 <p class="eyebrow" data-i18n="settingsEyebrow">Profil ve ayarlar</p>
                 <h2 id="settingsDrawerTitle" data-i18n="settingsTitle">Kurallarını belirle</h2>
               </div>
-              <button class="modal-close" id="settingsCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">x</button>
+              <button class="modal-close" id="settingsCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">
+                <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             <div class="settings-grid">
@@ -271,7 +275,11 @@
                 <p class="eyebrow" data-i18n="authEyebrow">Hesap</p>
                 <h2 id="authDrawerTitle" data-i18n="authTitle">Üyelik işlemleri</h2>
               </div>
-              <button class="modal-close" id="authCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">x</button>
+              <button class="modal-close" id="authCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">
+                <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
             <div class="auth-status card-panel" id="authStatus" hidden>
@@ -316,7 +324,11 @@
 
     <div class="modal-backdrop" id="feedbackModal" hidden>
       <section class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackMessage">
-        <button class="modal-close" id="modalCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">x</button>
+        <button class="modal-close" id="modalCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">
+          <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
         <span class="modal-icon" id="feedbackIcon" aria-hidden="true">!</span>
         <p class="eyebrow" id="feedbackEyebrow">Erken karar</p>
         <h2 id="feedbackTitle">Mesaj</h2>
@@ -352,6 +364,11 @@
 
     <div class="modal-backdrop" id="imageSourceModal" hidden>
       <section class="feedback-modal image-source-modal" role="dialog" aria-modal="true" aria-labelledby="imageSourceTitle">
+        <button class="modal-close" id="imageSourceCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">
+          <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
         <h2 id="imageSourceTitle" data-i18n="imageSourceTitle">Görsel Kaynağı Seç</h2>
         <p data-i18n="imageSourceMessage">Nasıl devam etmek istersin?</p>
         <div class="source-actions">
@@ -379,7 +396,9 @@
           data-i18n-aria-label="closeMessage"
           aria-label="Mesajı kapat"
         >
-          ×
+          <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
         </button>
         <img id="imageLightboxImg" class="image-lightbox-img" alt="" />
       </div>

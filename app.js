@@ -49,7 +49,7 @@ const TRANSLATIONS = {
     longestStreakLabel: "Rekor: {days} gün",
     tabsAria: "CoolDown ekranları",
     tabAdd: "Yeni İstek",
-    tabWaiting: "Soğuma Odası",
+    tabWaiting: "Bekleme Odası",
     tabWallet: "Kumbara",
     tabSettings: "Ayarlar",
     tabAuth: "Üyelik",
@@ -92,8 +92,8 @@ const TRANSLATIONS = {
     productNamePlaceholder: "Örn: Kablosuz kulaklık",
     priceLabel: "Fiyat",
     pricePlaceholder: "Örn: 1.500,50",
-    cooldownEmpty: "Fiyat girildiğinde soğuma süreniz burada görünecek.",
-    cooldownForAmount: "Bu tutar için soğuma süreniz {duration}.",
+    cooldownEmpty: "Fiyat girildiğinde bekleme süreniz burada görünecek.",
+    cooldownForAmount: "Bu tutar için bekleme süreniz {duration}.",
     addButton: "CoolDown'a Al",
     waitingEyebrow: "Ana vitrin",
     waitingTitle: "Soğuma odası",
@@ -173,7 +173,7 @@ const TRANSLATIONS = {
     imageLightboxLabel: "Ürün görseli — büyük önizleme",
     imageMissing: "Görsel bulunamadı",
     expired: "Süre doldu",
-    expiredReturnEyebrow: "Soğuma süresi tamamlandı",
+    expiredReturnEyebrow: "Bekleme süresi tamamlandı",
     expiredReturnTitle: "{count} ürünün süresi doldu",
     expiredReturnMessage: "Sen uygulamada değilken şu kayıtların bekleme süresi tamamlandı: {names}. Soğuma Odası'ndan karar verebilirsin.",
     countdownBadge: "Flash Sale molası: {remaining}",
@@ -205,7 +205,7 @@ const TRANSLATIONS = {
     savedEarlyMeta: "Sayaç bitmeden satın almaktan vazgeçildi.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
     earlyBoughtEyebrow: "Erken satın alma",
     earlySavedEyebrow: "Erken vazgeçme",
-    earlyBoughtTitle: "Soğuma süresi bitmeden satın aldın",
+    earlyBoughtTitle: "Bekleme süresi bitmeden satın aldın",
     earlySavedTitle: "Güzel karar, parayı cebinde tuttun",
     earlyBoughtMessage: "{name} için sayaç bitmeden alışverişi tamamladın. Bir sonraki istekte süreyi sonuna kadar beklemek kararını daha netleştirebilir.",
     earlySavedMessage: "{name} için {amount} harcamaktan sayaç bitmeden vazgeçtin. Bu tutar kumbara raporuna eklendi.",
@@ -441,6 +441,7 @@ const elements = {
   cameraOptionButton: document.querySelector("#cameraOptionButton"),
   galleryOptionButton: document.querySelector("#galleryOptionButton"),
   imageSourceCancelButton: document.querySelector("#imageSourceCancelButton"),
+  imageSourceCloseButton: document.querySelector("#imageSourceCloseButton"),
   imageLightbox: document.querySelector("#imageLightbox"),
   imageLightboxImg: document.querySelector("#imageLightboxImg"),
   imageLightboxClose: document.querySelector("#imageLightboxClose"),
@@ -675,6 +676,7 @@ function bindEvents() {
     elements.cameraInput.click();
   });
   elements.imageSourceCancelButton.addEventListener("click", hideImageSourceModal);
+  elements.imageSourceCloseButton.addEventListener("click", hideImageSourceModal);
   elements.imageLightboxClose.addEventListener("click", hideImageLightbox);
   elements.imageLightbox.addEventListener("click", (event) => {
     if (event.target === elements.imageLightbox) {

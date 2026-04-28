@@ -451,7 +451,7 @@ input[type="password"],
 select {
   width: 100%;
   margin-top: 8px;
-  padding: 16px 18px;
+  padding: 12px 18px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: var(--surface-strong);
@@ -729,6 +729,42 @@ select:focus {
 .auth-drawer-panel .modal-close {
   position: static;
   flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.settings-drawer-panel .modal-close:hover,
+.auth-drawer-panel .modal-close:hover {
+  background: var(--surface-strong);
+  color: var(--primary);
+  box-shadow: 0 8px 22px rgba(255, 61, 113, 0.14);
+}
+
+.settings-drawer-panel .modal-close:active,
+.auth-drawer-panel .modal-close:active {
+  transform: scale(0.96);
+}
+
+.settings-drawer-panel .modal-close:focus-visible,
+.auth-drawer-panel .modal-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.settings-drawer-panel .modal-close .modal-close-icon,
+.auth-drawer-panel .modal-close .modal-close-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
 @keyframes drawer-in {
@@ -945,6 +981,43 @@ select:focus {
   font-weight: 900;
 }
 
+.feedback-modal .modal-close {
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.08);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.feedback-modal .modal-close:hover {
+  background: var(--surface-strong);
+  color: var(--primary);
+  box-shadow: 0 8px 22px rgba(255, 61, 113, 0.14);
+}
+
+.feedback-modal .modal-close:active {
+  transform: scale(0.96);
+}
+
+.feedback-modal .modal-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.feedback-modal .modal-close .modal-close-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
 .modal-icon {
   display: grid;
   width: 72px;
@@ -1002,17 +1075,48 @@ select:focus {
 }
 
 .image-lightbox .modal-close {
-  top: -6px;
-  right: -6px;
+  top: -8px;
+  right: -8px;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.95);
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--line);
+  color: var(--text);
   box-shadow: 0 8px 24px rgba(17, 24, 39, 0.2);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.12s ease;
+}
+
+.image-lightbox .modal-close:hover {
+  background: #ffffff;
+  color: var(--primary);
+  box-shadow: 0 10px 28px rgba(255, 61, 113, 0.18);
+}
+
+.image-lightbox .modal-close:active {
+  transform: scale(0.96);
+}
+
+.image-lightbox .modal-close:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.image-lightbox .modal-close .modal-close-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
 .image-lightbox-img {
   display: block;
   max-width: 100%;
-  max-height: min(88vh, 900px);
+  /*max-height: min(88vh, 900px);*/
+  max-height: max(88vh, 95vh);
   width: auto;
   height: auto;
   margin: 0 auto;
