@@ -365,6 +365,8 @@ const elements = {
   rulesTable: document.querySelector("#rulesTable"),
   settingsDrawer: document.querySelector("#settingsDrawer"),
   settingsCloseButton: document.querySelector("#settingsCloseButton"),
+  authDrawer: document.querySelector("#authDrawer"),
+  authCloseButton: document.querySelector("#authCloseButton"),
   saveRulesButton: document.querySelector("#saveRulesButton"),
   clearDataButton: document.querySelector("#clearDataButton"),
   signInForm: document.querySelector("#signInForm"),
@@ -569,9 +571,15 @@ function bindEvents() {
       closeSettingsDrawer();
     }
   });
+  elements.authCloseButton.addEventListener("click", closeAuthDrawer);
+  elements.authDrawer.addEventListener("click", (event) => {
+    if (event.target === elements.authDrawer) {
+      closeAuthDrawer();
+    }
+  });
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.settingsDrawer.hidden) {
-      closeSettingsDrawer();
+    if (event.key === "Escape") {
+      closeOpenDrawers();
     }
   });
   elements.signInForm.addEventListener("submit", (event) => handleAuthSubmit(event, "signin"));
@@ -601,7 +609,12 @@ function showTab(tabName) {
     return;
   }
 
-  closeSettingsDrawer();
+  if (tabName === "auth") {
+    openAuthDrawer();
+    return;
+  }
+
+  closeOpenDrawers({ restoreTab: false });
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === tabName;
     button.classList.toggle("active", isActive);
@@ -616,24 +629,68 @@ function showTab(tabName) {
 }
 
 function openSettingsDrawer() {
+  closeAuthDrawer({ restoreTab: false });
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === "settings";
     button.classList.toggle("active", isActive);
     button.setAttribute("aria-selected", String(isActive));
   });
+  elements.settingsDrawer.classList.remove("is-closing");
   elements.settingsDrawer.hidden = false;
   document.body.classList.add("drawer-open");
   elements.settingsCloseButton.focus();
 }
 
-function closeSettingsDrawer() {
-  if (elements.settingsDrawer.hidden) {
+function openAuthDrawer() {
+  closeSettingsDrawer({ restoreTab: false });
+  elements.tabs.forEach((button) => {
+    const isActive = button.dataset.tab === "auth";
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  elements.authDrawer.classList.remove("is-closing");
+  elements.authDrawer.hidden = false;
+  document.body.classList.add("drawer-open");
+  elements.authCloseButton.focus();
+}
+
+function closeSettingsDrawer({ restoreTab = true } = {}) {
+  closeDrawer(elements.settingsDrawer, { restoreTab });
+}
+
+function closeAuthDrawer({ restoreTab = true } = {}) {
+  closeDrawer(elements.authDrawer, { restoreTab });
+}
+
+function closeDrawer(drawer, { restoreTab = true } = {}) {
+  if (drawer.hidden || drawer.classList.contains("is-closing")) {
     return;
   }
 
-  elements.settingsDrawer.hidden = true;
-  document.body.classList.remove("drawer-open");
-  restoreActiveTabFromVisibleScreen();
+  drawer.classList.add("is-closing");
+  if (restoreTab) {
+    restoreActiveTabFromVisibleScreen();
+  }
+
+  const panel = drawer.querySelector(".settings-drawer-panel");
+  const finishClose = () => {
+    if (!drawer.classList.contains("is-closing")) {
+      return;
+    }
+
+    drawer.hidden = true;
+    drawer.classList.remove("is-closing");
+    if (elements.settingsDrawer.hidden && elements.authDrawer.hidden) {
+      document.body.classList.remove("drawer-open");
+    }
+  };
+
+  panel.addEventListener("animationend", finishClose, { once: true });
+}
+
+function closeOpenDrawers(options) {
+  closeSettingsDrawer(options);
+  closeAuthDrawer(options);
 }
 
 function restoreActiveTabFromVisibleScreen() {

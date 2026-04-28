@@ -208,46 +208,52 @@
             </div>
           </div>
         </section>
-        <section class="screen" id="screen-auth" role="tabpanel" hidden>
-          <div class="section-heading">
-            <p class="eyebrow" data-i18n="authEyebrow">Hesap</p>
-            <h2 data-i18n="authTitle">Üyelik işlemleri</h2>
-          </div>
 
-          <div class="auth-status card-panel" id="authStatus" hidden>
-            <div>
-              <span data-i18n="signedInAs">Giriş yapılan hesap</span>
-              <strong id="authUserEmail"></strong>
+        <section class="settings-drawer-backdrop" id="authDrawer" role="dialog" aria-modal="true" aria-labelledby="authDrawerTitle" hidden>
+          <div class="settings-drawer-panel auth-drawer-panel">
+            <div class="section-heading split-heading">
+              <div>
+                <p class="eyebrow" data-i18n="authEyebrow">Hesap</p>
+                <h2 id="authDrawerTitle" data-i18n="authTitle">Üyelik işlemleri</h2>
+              </div>
+              <button class="modal-close" id="authCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">x</button>
             </div>
-            <button class="danger-button" id="signOutButton" type="button" data-i18n="signOut">Çıkış Yap</button>
-          </div>
 
-          <div class="auth-grid" id="authForms">
-            <form class="auth-card card-panel" id="signInForm">
-              <h3 data-i18n="signInTitle">Giriş yap</h3>
-              <label>
-                <span data-i18n="emailLabel">E-posta</span>
-                <input id="signInEmail" name="email" type="email" autocomplete="email" required />
-              </label>
-              <label>
-                <span data-i18n="passwordLabel">Şifre</span>
-                <input id="signInPassword" name="password" type="password" autocomplete="current-password" required />
-              </label>
-              <button class="primary-button" type="submit" data-i18n="signInButton">Giriş Yap</button>
-            </form>
+            <div class="auth-status card-panel" id="authStatus" hidden>
+              <div>
+                <span data-i18n="signedInAs">Giriş yapılan hesap</span>
+                <strong id="authUserEmail"></strong>
+              </div>
+              <button class="danger-button" id="signOutButton" type="button" data-i18n="signOut">Çıkış Yap</button>
+            </div>
 
-            <form class="auth-card card-panel" id="signUpForm">
-              <h3 data-i18n="signUpTitle">Üye ol</h3>
-              <label>
-                <span data-i18n="emailLabel">E-posta</span>
-                <input id="signUpEmail" name="email" type="email" autocomplete="email" required />
-              </label>
-              <label>
-                <span data-i18n="passwordLabel">Şifre</span>
-                <input id="signUpPassword" name="password" type="password" autocomplete="new-password" minlength="6" required />
-              </label>
-              <button class="secondary-button" type="submit" data-i18n="signUpButton">Üye Ol</button>
-            </form>
+            <div class="auth-grid" id="authForms">
+              <form class="auth-card card-panel" id="signInForm">
+                <h3 data-i18n="signInTitle">Giriş yap</h3>
+                <label>
+                  <span data-i18n="emailLabel">E-posta</span>
+                  <input id="signInEmail" name="email" type="email" autocomplete="email" required />
+                </label>
+                <label>
+                  <span data-i18n="passwordLabel">Şifre</span>
+                  <input id="signInPassword" name="password" type="password" autocomplete="current-password" required />
+                </label>
+                <button class="primary-button" type="submit" data-i18n="signInButton">Giriş Yap</button>
+              </form>
+
+              <form class="auth-card card-panel" id="signUpForm">
+                <h3 data-i18n="signUpTitle">Üye ol</h3>
+                <label>
+                  <span data-i18n="emailLabel">E-posta</span>
+                  <input id="signUpEmail" name="email" type="email" autocomplete="email" required />
+                </label>
+                <label>
+                  <span data-i18n="passwordLabel">Şifre</span>
+                  <input id="signUpPassword" name="password" type="password" autocomplete="new-password" minlength="6" required />
+                </label>
+                <button class="secondary-button" type="submit" data-i18n="signUpButton">Üye Ol</button>
+              </form>
+            </div>
           </div>
         </section>
       </main>
