@@ -852,7 +852,7 @@ select:focus {
   z-index: 120;
   left: 50%;
   bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-  max-width: min(92vw, 420px);
+  max-width: min(94vw, 560px);
   padding: 14px 18px;
   transform: translateX(-50%) translateY(120%);
   border-radius: 14px;
