@@ -194,6 +194,14 @@ const TRANSLATIONS = {
     deleteConfirmTitle: "Bu kaydı silmek istiyor musun?",
     deleteConfirmMessage: '"{name}" kaydı ve varsa görseli kalıcı olarak silinecek.',
     deleteConfirmAction: "Evet, Sil",
+    extendDurationButton: "Süreyi Uzat",
+    extendDurationEyebrow: "Kayıt süresi dolmuş",
+    extendDurationTitle: "Ne kadar uzatmak istiyorsun?",
+    extendDurationUnitHour: "saat",
+    extendDurationUnitDay: "gün",
+    extendDurationConfirm: "Uzat",
+    extendDurationDecrease: "Azalt",
+    extendDurationIncrease: "Arttır",
     boughtBadge: "Satın alındı",
     boughtMeta: "Bu ürün için satın alma kararı verildi. Kumbara toplamına eklenmedi.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
     regretVoteHappy: "Pişmanlık oyu: İyi ki almışım",
@@ -382,6 +390,14 @@ const TRANSLATIONS = {
     deleteConfirmTitle: "Do you want to delete this record?",
     deleteConfirmMessage: '"{name}" and its image, if any, will be permanently deleted.',
     deleteConfirmAction: "Yes, Delete",
+    extendDurationButton: "Extend time",
+    extendDurationEyebrow: "Cooldown expired",
+    extendDurationTitle: "How much longer?",
+    extendDurationUnitHour: "hours",
+    extendDurationUnitDay: "days",
+    extendDurationConfirm: "Extend",
+    extendDurationDecrease: "Decrease",
+    extendDurationIncrease: "Increase",
     boughtBadge: "Purchased",
     boughtMeta: "A purchase decision was made for this item. It was not added to the piggy bank total.\nCreated: {createdAt}\nDecision date: {statusDate}",
     regretVoteHappy: "Regret vote: Glad I bought it",
@@ -422,6 +438,11 @@ const state = {
   regretSurveyQueue: [],
   activeRegretSurveyItemId: null,
   pendingStreakCelebrationDays: null,
+  extendModal: {
+    itemId: null,
+    amount: 1,
+    unit: "hour",
+  },
   streak: {
     lastPurchaseDate: null,
     currentStreak: 0,
@@ -509,6 +530,16 @@ const elements = {
   regretHappyButton: document.querySelector("#regretHappyButton"),
   regretRegrettedButton: document.querySelector("#regretRegrettedButton"),
   productCardTemplate: document.querySelector("#productCardTemplate"),
+  extendDurationModal: document.querySelector("#extendDurationModal"),
+  extendDurationCloseButton: document.querySelector("#extendDurationCloseButton"),
+  extendDurationCancelButton: document.querySelector("#extendDurationCancelButton"),
+  extendDurationConfirmButton: document.querySelector("#extendDurationConfirmButton"),
+  extendDurationMinus: document.querySelector("#extendDurationMinus"),
+  extendDurationPlus: document.querySelector("#extendDurationPlus"),
+  extendDurationAmount: document.querySelector("#extendDurationAmount"),
+  extendDurationUnitHour: document.querySelector("#extendDurationUnitHour"),
+  extendDurationUnitDay: document.querySelector("#extendDurationUnitDay"),
+  extendDurationUnitsGroup: document.querySelector(".extend-duration-units"),
 };
 
 document.addEventListener("DOMContentLoaded", init);
@@ -772,6 +803,10 @@ function bindEvents() {
         hideImageLightbox();
         return;
       }
+      if (!elements.extendDurationModal.hidden) {
+        hideExtendDurationModal();
+        return;
+      }
       closeOpenDrawers();
     }
   });
@@ -782,6 +817,19 @@ function bindEvents() {
   elements.regretRegrettedButton.addEventListener("click", () => answerRegretSurvey("regretted"));
   elements.modalCloseButton.addEventListener("click", hideFeedbackModal);
   elements.modalCancelButton.addEventListener("click", hideFeedbackModal);
+
+  elements.extendDurationCloseButton.addEventListener("click", hideExtendDurationModal);
+  elements.extendDurationCancelButton.addEventListener("click", hideExtendDurationModal);
+  elements.extendDurationModal.addEventListener("click", (event) => {
+    if (event.target === elements.extendDurationModal) {
+      hideExtendDurationModal();
+    }
+  });
+  elements.extendDurationMinus.addEventListener("click", () => adjustExtendModalAmount(-1));
+  elements.extendDurationPlus.addEventListener("click", () => adjustExtendModalAmount(1));
+  elements.extendDurationUnitHour.addEventListener("click", () => setExtendModalUnit("hour"));
+  elements.extendDurationUnitDay.addEventListener("click", () => setExtendModalUnit("day"));
+  elements.extendDurationConfirmButton.addEventListener("click", commitExtendDuration);
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -1817,6 +1865,18 @@ async function createProductCard(item, mode) {
     const isExpired = remaining <= 0;
     badge.textContent = isExpired ? t("expired") : t("countdownBadge", { remaining: formatRemaining(remaining) });
     badge.classList.toggle("done", isExpired);
+    if (isExpired) {
+      const extendBtn = document.createElement("button");
+      extendBtn.type = "button";
+      extendBtn.className = "extend-duration-button";
+      extendBtn.textContent = t("extendDurationButton");
+      extendBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        showExtendDurationModal(item.id);
+      });
+      imageWrap.append(extendBtn);
+    }
     meta.textContent = withWorkTime(item, t("waitingMeta", { duration: formatHours(item.assignedWaitHours), date: formatDate(item.expireDate), createdAt: formatDate(item.dateAdded) }));
 
     actions.append(
@@ -2128,6 +2188,71 @@ function prepareInfoModal() {
 function hideFeedbackModal() {
   prepareInfoModal();
   elements.feedbackModal.hidden = true;
+}
+
+function resetExtendModalForm() {
+  state.extendModal.amount = 1;
+  state.extendModal.unit = "hour";
+}
+
+function syncExtendModalUi() {
+  elements.extendDurationAmount.textContent = String(state.extendModal.amount);
+  const isHour = state.extendModal.unit === "hour";
+  elements.extendDurationUnitHour.setAttribute("aria-checked", String(isHour));
+  elements.extendDurationUnitDay.setAttribute("aria-checked", String(!isHour));
+  elements.extendDurationUnitsGroup.setAttribute("aria-label", t("extendDurationTitle"));
+}
+
+function adjustExtendModalAmount(delta) {
+  state.extendModal.amount = Math.max(1, state.extendModal.amount + delta);
+  syncExtendModalUi();
+}
+
+function setExtendModalUnit(unit) {
+  state.extendModal.unit = unit === "day" ? "day" : "hour";
+  syncExtendModalUi();
+}
+
+function showExtendDurationModal(itemId) {
+  const item = state.items.find((candidate) => candidate.id === itemId);
+  if (!item || item.status !== "waiting" || getRemainingMs(item) > 0) {
+    return;
+  }
+
+  state.extendModal.itemId = itemId;
+  resetExtendModalForm();
+  syncExtendModalUi();
+  elements.extendDurationModal.hidden = false;
+  elements.extendDurationConfirmButton.focus();
+}
+
+function hideExtendDurationModal() {
+  state.extendModal.itemId = null;
+  elements.extendDurationModal.hidden = true;
+}
+
+function commitExtendDuration() {
+  const itemId = state.extendModal.itemId;
+  if (!itemId) {
+    return;
+  }
+
+  const item = state.items.find((candidate) => candidate.id === itemId);
+  if (!item || item.status !== "waiting") {
+    hideExtendDurationModal();
+    return;
+  }
+
+  const amount = state.extendModal.amount;
+  const extendMs = amount * (state.extendModal.unit === "day" ? DAY_MS : 60 * 60 * 1000);
+  const base = Math.max(Date.now(), new Date(item.expireDate).getTime());
+  item.expireDate = new Date(base + extendMs).toISOString();
+  const totalMs = new Date(item.expireDate).getTime() - new Date(item.dateAdded).getTime();
+  item.assignedWaitHours = Math.max(0.01, totalMs / (60 * 60 * 1000));
+
+  hideExtendDurationModal();
+  saveItems();
+  renderAll();
 }
 
 function openImageLightbox(src, altText) {

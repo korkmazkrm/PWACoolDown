@@ -564,6 +564,97 @@ select:focus {
   background: var(--success);
 }
 
+.extend-duration-button {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 3;
+  max-width: min(140px, calc(100% - 120px));
+  padding: 8px 12px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--secondary);
+  font-size: 0.78rem;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.18);
+  cursor: pointer;
+  text-align: center;
+}
+
+.extend-duration-button:hover {
+  filter: brightness(1.03);
+}
+
+.extend-duration-modal .extend-duration-stepper {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  gap: 0;
+  margin: 22px 0 14px;
+  border: 3px solid #111827;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface-strong);
+}
+
+.extend-duration-modal .extend-duration-step-btn {
+  margin: 0;
+  padding: 14px 8px;
+  border: none;
+  background: #fff;
+  color: #111827;
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.extend-duration-modal .extend-duration-step-btn:active {
+  background: #f3f4f6;
+}
+
+.extend-duration-modal .extend-duration-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 12px 8px;
+  border-inline: 3px solid #111827;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.extend-duration-modal .extend-duration-units {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-bottom: 8px;
+  border: 3px solid #111827;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.extend-duration-modal .extend-duration-unit-btn {
+  margin: 0;
+  padding: 14px 16px;
+  border: none;
+  background: #fff;
+  color: var(--text);
+  font-weight: 900;
+  font-size: 0.98rem;
+  cursor: pointer;
+}
+
+.extend-duration-modal .extend-duration-unit-btn + .extend-duration-unit-btn {
+  border-left: 3px solid #111827;
+}
+
+.extend-duration-modal .extend-duration-unit-btn[aria-checked="true"] {
+  background: linear-gradient(135deg, rgba(255, 61, 113, 0.15), rgba(251, 146, 60, 0.2));
+  color: var(--primary-dark);
+}
+
 .product-body {
   padding: 18px;
 }

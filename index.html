@@ -381,6 +381,42 @@
       </section>
     </div>
 
+    <div class="modal-backdrop" id="extendDurationModal" hidden>
+      <section
+        class="feedback-modal extend-duration-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="extendDurationTitle"
+      >
+        <button
+          class="modal-close"
+          id="extendDurationCloseButton"
+          type="button"
+          aria-label="Mesajı kapat"
+          data-i18n-aria-label="closeMessage"
+        >
+          <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+        <p class="eyebrow" id="extendDurationEyebrow" data-i18n="extendDurationEyebrow">Kayıt süresi dolmuş</p>
+        <h2 id="extendDurationTitle" data-i18n="extendDurationTitle">Ne kadar uzatmak istiyorsun?</h2>
+        <div class="extend-duration-stepper" role="group" aria-labelledby="extendDurationTitle">
+          <button type="button" id="extendDurationMinus" class="extend-duration-step-btn" data-i18n-aria-label="extendDurationDecrease" aria-label="Azalt">&minus;</button>
+          <span class="extend-duration-value" id="extendDurationAmount" aria-live="polite">1</span>
+          <button type="button" id="extendDurationPlus" class="extend-duration-step-btn" data-i18n-aria-label="extendDurationIncrease" aria-label="Arttır">+</button>
+        </div>
+        <div class="extend-duration-units" role="radiogroup" aria-label="">
+          <button type="button" role="radio" class="extend-duration-unit-btn" id="extendDurationUnitHour" aria-checked="true" data-i18n="extendDurationUnitHour">saat</button>
+          <button type="button" role="radio" class="extend-duration-unit-btn" id="extendDurationUnitDay" aria-checked="false" data-i18n="extendDurationUnitDay">gün</button>
+        </div>
+        <div class="modal-actions">
+          <button class="secondary-button" id="extendDurationCancelButton" type="button" data-i18n="cancel">İptal</button>
+          <button class="primary-button" id="extendDurationConfirmButton" type="button" data-i18n="extendDurationConfirm">Uzat</button>
+        </div>
+      </section>
+    </div>
+
     <div class="modal-backdrop image-lightbox-backdrop" id="imageLightbox" hidden>
       <div
         class="image-lightbox"
