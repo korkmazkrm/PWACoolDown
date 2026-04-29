@@ -12,6 +12,8 @@ const DEFAULT_GOAL = {
   goalName: "",
   targetAmount: 0,
   currentAmount: 0,
+  /** İlk kez hedef tutarı > 0 yapıldığında (veya geçiş migrate) — bu andan sonraki vazgeçtimler kumbaraya girer. ISO string */
+  goalTrackingSince: null,
 };
 
 const LOCAL_API_BASE_URLS = ["https://localhost:7269/api", "http://localhost:5261/api"];
@@ -254,7 +256,8 @@ const TRANSLATIONS = {
     clearConfirm: "Tüm CoolDown verileri ve görseller silinsin mi?",
     goalSettingsEyebrow: "Hedef kumbarası",
     goalSettingsTitle: "İptal tutarlarını yönlendir",
-    goalSettingsHelp: "Vazgeçtiğin harcamaların tutarı bu hedefe eklenir; kumbara ekranında ilerlemeyi görürsün.",
+    goalSettingsHelp:
+      "Hedef tutarını kaydettiğin andan itibaren seçtiğin “Vazgeçtim” kalemleri burada birikir; önceki tarihli kayıtlar bu hedefe dahil edilmez.",
     goalNameLabel: "Hedef adı",
     goalNamePlaceholder: "Örn: Bali tatili",
     goalTargetLabel: "Hedef tutar",
@@ -481,7 +484,8 @@ const TRANSLATIONS = {
     clearConfirm: "Delete all CoolDown data and images?",
     goalSettingsEyebrow: "Goal piggy bank",
     goalSettingsTitle: "Route cancelled spending",
-    goalSettingsHelp: "Amounts from items you give up on are added to this goal; see progress on the wallet screen.",
+    goalSettingsHelp:
+      "Only “canceled” choices you make after saving a target count toward this goal; earlier decisions are not included.",
     goalNameLabel: "Goal name",
     goalNamePlaceholder: "E.g. Bali trip",
     goalTargetLabel: "Target amount",
@@ -657,6 +661,7 @@ function loadState() {
   state.settings = normalizeSettings(readJson(STORAGE_KEYS.settings, DEFAULT_SETTINGS));
   state.items = readJson(STORAGE_KEYS.items, []).map(normalizeItem);
   state.goal = normalizeGoal(readJson(STORAGE_KEYS.goal, DEFAULT_GOAL));
+  migrateGoalBaselineIfNeeded();
   state.reflectionTable = readJson(STORAGE_KEYS.reflectionTable, [])
     .map(normalizeReflectionTableRow)
     .filter(Boolean);
@@ -870,10 +875,25 @@ function saveItems() {
 
 function normalizeGoal(raw) {
   const merged = { ...DEFAULT_GOAL, ...raw };
+  const targetAmount = Math.max(0, Number(merged.targetAmount) || 0);
+  let currentAmount = Math.max(0, Number(merged.currentAmount) || 0);
+  let goalTrackingSince = null;
+  if (
+    merged.goalTrackingSince &&
+    typeof merged.goalTrackingSince === "string" &&
+    !Number.isNaN(Date.parse(merged.goalTrackingSince))
+  ) {
+    goalTrackingSince = merged.goalTrackingSince;
+  }
+  if (targetAmount <= 0) {
+    goalTrackingSince = null;
+    currentAmount = 0;
+  }
   return {
     goalName: String(merged.goalName ?? "").trim(),
-    targetAmount: Math.max(0, Number(merged.targetAmount) || 0),
-    currentAmount: Math.max(0, Number(merged.currentAmount) || 0),
+    targetAmount,
+    currentAmount,
+    goalTrackingSince,
   };
 }
 
@@ -884,17 +904,51 @@ function saveGoal() {
       goalName: state.goal.goalName,
       targetAmount: state.goal.targetAmount,
       currentAmount: state.goal.currentAmount,
+      goalTrackingSince: state.goal.goalTrackingSince,
     }),
   );
 }
 
-function addToGoalAndGetToastMessage(addedAmount) {
+function recomputeGoalCurrentFromItems() {
+  const { goalTrackingSince, targetAmount } = state.goal;
+  if (!goalTrackingSince || targetAmount <= 0) {
+    state.goal.currentAmount = 0;
+    return;
+  }
+  const t0 = Date.parse(goalTrackingSince);
+  if (!Number.isFinite(t0)) {
+    state.goal.currentAmount = 0;
+    return;
+  }
+  let sum = 0;
+  for (const item of state.items) {
+    if (item.status !== "saved_full" && item.status !== "saved_early") continue;
+    const d = item.statusChangedDate ? Date.parse(item.statusChangedDate) : NaN;
+    if (!Number.isFinite(d) || d < t0) continue;
+    sum += Number(item.price) || 0;
+  }
+  state.goal.currentAmount = Math.max(0, sum);
+}
+
+function migrateGoalBaselineIfNeeded() {
+  if (state.goal.targetAmount <= 0 || state.goal.goalTrackingSince) return;
+  state.goal.goalTrackingSince = new Date().toISOString();
+  recomputeGoalCurrentFromItems();
+}
+
+function addToGoalAndGetToastMessage(addedAmount, decisionAtIso) {
   const delta = Math.max(0, Number(addedAmount) || 0);
+  const { goalName, targetAmount, goalTrackingSince } = state.goal;
+  if (targetAmount <= 0 || !goalTrackingSince) return null;
+
+  const baselineMs = Date.parse(goalTrackingSince);
+  const decisionMs = Date.parse(decisionAtIso);
+  if (!Number.isFinite(decisionMs) || !Number.isFinite(baselineMs) || decisionMs < baselineMs) {
+    return null;
+  }
+
   state.goal.currentAmount = Math.max(0, state.goal.currentAmount + delta);
   saveGoal();
-
-  const { goalName, targetAmount } = state.goal;
-  if (targetAmount <= 0) return null;
 
   const slicePct = Math.min(100, (delta / targetAmount) * 100);
   const displayName = goalName.trim() || t("goalDefaultName");
@@ -1147,9 +1201,24 @@ function bindEvents() {
       }
     });
     elements.goalTargetAmount.addEventListener("change", () => {
-      state.goal.targetAmount = Math.max(0, parseCurrencyInput(elements.goalTargetAmount.value));
+      const prevTarget = state.goal.targetAmount;
+      const nextTarget = Math.max(0, parseCurrencyInput(elements.goalTargetAmount.value));
+      state.goal.targetAmount = nextTarget;
+      if (prevTarget <= 0 && nextTarget > 0) {
+        state.goal.goalTrackingSince = new Date().toISOString();
+        recomputeGoalCurrentFromItems();
+      } else if (nextTarget <= 0) {
+        state.goal.goalTrackingSince = null;
+        state.goal.currentAmount = 0;
+      }
       saveGoal();
       renderGoalProgress();
+      if (elements.goalCurrentDisplay) {
+        elements.goalCurrentDisplay.textContent = formatCurrency(state.goal.currentAmount);
+      }
+      if (elements.goalCurrentHelp) {
+        elements.goalCurrentHelp.hidden = state.goal.currentAmount <= 0;
+      }
     });
   }
 
@@ -2625,7 +2694,7 @@ function updateItemStatus(id, status) {
     item.regretStatus = "pending";
     recordPurchaseForStreak(changedAt);
   } else if (status === "saved_full" || status === "saved_early") {
-    goalToastMessage = addToGoalAndGetToastMessage(item.price);
+    goalToastMessage = addToGoalAndGetToastMessage(item.price, changedAt);
   }
 
   saveItems();
