@@ -1,9 +1,17 @@
 const STORAGE_KEYS = {
   items: "cooldown.items",
   settings: "cooldown.settings",
+  goal: "cooldown.goal",
   lastSeenAt: "cooldown.lastSeenAt",
   auth: "cooldown.auth",
   streak: "cooldown.streak",
+  reflectionTable: "cooldown.reflectionTable",
+};
+
+const DEFAULT_GOAL = {
+  goalName: "",
+  targetAmount: 0,
+  currentAmount: 0,
 };
 
 const LOCAL_API_BASE_URLS = ["https://localhost:7269/api", "http://localhost:5261/api"];
@@ -11,11 +19,12 @@ const API_BASE_URLS =
   localStorage.getItem("cooldown.apiBaseUrl")?.split(",").map((url) => url.trim()).filter(Boolean) ||
   (["localhost", "127.0.0.1"].includes(window.location.hostname) ? LOCAL_API_BASE_URLS : [`${window.location.origin}/api`]);
 
-const FREE_ITEM_LIMIT = 3;
+const FREE_ITEM_LIMIT = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 const DEFAULT_SETTINGS = {
   allowEarlyCancel: true,
+  enableReflectionForm: false,
   currencyCode: "TL",
   hourlyWage: 0,
   language: "tr",
@@ -41,7 +50,7 @@ const TRANSLATIONS = {
     iosInstallTitle: "Ana ekrana ekle",
     iosInstallMessage: "iPhone veya iPad'de kurmak için Safari'de Paylaş butonuna dokun, ardından Ana Ekrana Ekle seçeneğini kullan.",
     heroEyebrow: "Flash sale baskısına mola ver",
-    heroTitle: "Sepete değil, önce soğuma odasına.",
+    heroTitle: "Sepete değil, önce bekleme odasına.",
     heroCopy: "Alışveriş dürtülerini ürün kartlarına dönüştür, sayaç bitene kadar bekle ve gerçekten ihtiyacın olup olmadığını gör.",
     heroSummaryAria: "Kısa özet",
     savedSoFar: "Bugüne kadar kurtarılan",
@@ -96,7 +105,7 @@ const TRANSLATIONS = {
     cooldownForAmount: "Bu tutar için bekleme süreniz {duration}.",
     addButton: "CoolDown'a Al",
     waitingEyebrow: "Ana vitrin",
-    waitingTitle: "Soğuma odası",
+    waitingTitle: "Bekleme odası",
     waitingCount: "{count} ürün bekliyor",
     waitingEmpty: "Bekleyen ürün yok. Yeni bir istek ekleyerek başlayabilirsin.",
     walletEyebrow: "Kumbara ve irade raporu",
@@ -107,28 +116,45 @@ const TRANSLATIONS = {
     filterLast7Days: "Son 1 Hafta",
     filterLast30Days: "Son 1 Ay",
     totalSaved: "Toplam kurtarılan para",
-    earlySaved: "Erken pes ederek kurtarılan",
     totalBought: "Satın alınan toplam",
     successRate: "İrade başarı oranı",
     regretRate: "Dürtüsel pişmanlık oranı",
     regretNoData: "Henüz veri yok",
-    budgetHealthTitle: "Can Barı",
-    budgetHealthSetup: "Can Barı için Settings bölümünden aylık bütçe limiti belirle.",
+    budgetHealthTitle: "Limit Barı",
+    budgetHealthSetup: "Limit Barı için Settings bölümünden aylık bütçe limiti belirle.",
     budgetHealthSafe: "Güvendesin",
     budgetHealthCaution: "Dikkatli ol",
     budgetHealthCritical: "Kritik seviye",
     budgetHealthOver: "Bütçe Aşıldı!",
-    budgetHealthCopy: "Kalan Can: {remaining} / {limit}",
-    budgetHealthGhostCopy: "Bekleyen ürünleri alırsan canın {projected} seviyesine düşecek.",
-    budgetOverdraftEyebrow: "Can Barı uyarısı",
-    budgetOverdraftTitle: "Bu harcama canını eksiye düşürecek!",
-    budgetOverdraftMessage: "{amount} tutarındaki bu istek kalan canından yüksek. Devam edersen Can Barı negatif bölgeye inecek.",
+    budgetHealthCopy: "Kalan Limit: {remaining} / {limit}",
+    budgetHealthGhostCopy: "Bekleyen ürünleri alırsan limitin {projected} seviyesine düşecek.",
+    budgetOverdraftEyebrow: "Limit Barı uyarısı",
+    budgetOverdraftTitle: "Bu harcama limitini eksiye düşürecek!",
+    budgetOverdraftMessage: "{amount} tutarındaki bu istek kalan limitinden yüksek. Devam edersen Limit Barı negatif bölgeye inecek.",
     budgetOverdraftAction: "Evet, beklemeye al",
     historyEmpty: "Henüz tamamlanan karar yok.",
     settingsEyebrow: "Profil ve ayarlar",
     settingsTitle: "Kurallarını belirle",
-    earlyActionTitle: "Erken işlem izni",
+    earlyActionTitle: "Süre dolmadan karar izni",
     earlyActionCopy: 'Sayaç bitmeden "Satın Aldım" ve "Vazgeçtim" butonlarının kullanılmasına izin ver.',
+    reflectionSettingsTitle: "Ön-Yüzleşme formu",
+    reflectionSettingsHelp: "Açıkken yeni istekte kısa sorular gösterilir; dürtüsel cevaplarda bekleme süresi kurala göre uzar.",
+    reflectionModalEyebrow: "Ön yüzleşme",
+    reflectionModalTitle: "Önce kendine sor",
+    reflectionQ1: "Bu harcama sence bir ihtiyaç mı, yoksa sadece anlık bir istek mi?",
+    reflectionQ1Need: "İhtiyaç",
+    reflectionQ1Desire: "İstek",
+    reflectionQ2: "Buna benzer işlev gören bir eşyan şu an var mı?",
+    reflectionQ2Yes: "Evet",
+    reflectionQ2No: "Hayır",
+    reflectionQ3: "Sence bunu 1 ay sonra hala aktif olarak kullanıyor olacak mısın?",
+    reflectionQ3Certain: "Kesinlikle",
+    reflectionQ3Unsure: "Emin değilim",
+    reflectionSubmit: "Cevapla ve Beklemeyi Başlat",
+    reflectionDismiss: "Vazgeç",
+    reflectionIncomplete: "Lütfen tüm soruları yanıtla.",
+    reflectionPenaltyToast: "Cevaplarına göre bu harcama oldukça dürtüsel. Caydırıcılık için bekleme süren %{percent} oranında uzatıldı!",
+    reflectionNoPenaltyToast: "Cevaplarına göre ek süre cezası uygulanmadı; standart bekleme süresi geçerli.",
     languageLabel: "Dil",
     languageHelp: "Uygulama arayüz dilini seç.",
     currencyCodeLabel: "Para birimi kodu",
@@ -141,7 +167,7 @@ const TRANSLATIONS = {
     regretSurveyDaysHelp: "Satın aldıktan kaç gün sonra yüzleşme anketinin gösterileceğini belirler.",
     monthlyBudgetLimitLabel: "Aylık keyfi harcama limiti",
     monthlyBudgetLimitPlaceholder: "Örn: 15.000,00",
-    monthlyBudgetLimitHelp: "Can Barı için bu döngüdeki maksimum bütçeni belirler.",
+    monthlyBudgetLimitHelp: "Limit Barı için bu döngüdeki maksimum bütçeni belirler.",
     budgetResetDayLabel: "Bütçe yenileme günü",
     budgetResetDayPlaceholder: "1",
     budgetResetDayHelp: "Maaş günü mantığıyla bütçenin ayın hangi günü %100'e döneceğini belirler.",
@@ -209,10 +235,10 @@ const TRANSLATIONS = {
     regretVotePending: "Pişmanlık oyu: Bekliyor",
     savedFullBadge: "Tam süre bekledi",
     savedFullMeta: "Sayaç tamamlandıktan sonra satın alınmadı.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
-    savedEarlyBadge: "Erken vazgeçti",
+    savedEarlyBadge: "Vazgeçildi",
     savedEarlyMeta: "Sayaç bitmeden satın almaktan vazgeçildi.\nOluşturuldu: {createdAt}\nKarar tarihi: {statusDate}",
-    earlyBoughtEyebrow: "Erken satın alma",
-    earlySavedEyebrow: "Erken vazgeçme",
+    earlyBoughtEyebrow: "Bekleme bitmeden satın alım",
+    earlySavedEyebrow: "Satın alınmadı",
     earlyBoughtTitle: "Bekleme süresi bitmeden satın aldın",
     earlySavedTitle: "Güzel karar, parayı cebinde tuttun",
     earlyBoughtMessage: "{name} için sayaç bitmeden alışverişi tamamladın. Bir sonraki istekte süreyi sonuna kadar beklemek kararını daha netleştirebilir.",
@@ -226,6 +252,19 @@ const TRANSLATIONS = {
     rulesSavedTitle: "Ayarlarınız kaydedilmiştir",
     rulesSavedMessage: "Değişiklikler başarıyla kaydedildi.",
     clearConfirm: "Tüm CoolDown verileri ve görseller silinsin mi?",
+    goalSettingsEyebrow: "Hedef kumbarası",
+    goalSettingsTitle: "İptal tutarlarını yönlendir",
+    goalSettingsHelp: "Vazgeçtiğin harcamaların tutarı bu hedefe eklenir; kumbara ekranında ilerlemeyi görürsün.",
+    goalNameLabel: "Hedef adı",
+    goalNamePlaceholder: "Örn: Bali tatili",
+    goalTargetLabel: "Hedef tutar",
+    goalTargetPlaceholder: "Örn: 80.000,00",
+    goalCurrentSavedLabel: "Hedef kumbarasında biriken",
+    goalDefaultName: "Hedef",
+    goalPercentDone: "Tamamlandı",
+    goalAccumulatedLabel: "Biriken",
+    goalCardEyebrow: "Hedef kumbarası",
+    goalProgressToast: "Harika! {goalName} hedefinin %{percent} kadarı daha tamamlandı!",
   },
   en: {
     documentTitle: "CoolDown",
@@ -303,7 +342,6 @@ const TRANSLATIONS = {
     filterLast7Days: "Last 1 Week",
     filterLast30Days: "Last 1 Month",
     totalSaved: "Total money saved",
-    earlySaved: "Saved by canceling early",
     totalBought: "Total purchased",
     successRate: "Willpower success rate",
     regretRate: "Impulsive regret rate",
@@ -323,8 +361,27 @@ const TRANSLATIONS = {
     historyEmpty: "No completed decisions yet.",
     settingsEyebrow: "Profile and settings",
     settingsTitle: "Set your rules",
-    earlyActionTitle: "Early action permission",
+    earlyActionTitle: "Decide before the timer ends",
     earlyActionCopy: 'Allow "Bought It" and "Canceled" before the timer ends.',
+    reflectionSettingsTitle: "Pre-reflection form",
+    reflectionSettingsHelp: "When on, a short questionnaire appears before the wait starts; impulsive answers extend the cooldown within the rules.",
+    reflectionModalEyebrow: "Pre-reflection",
+    reflectionModalTitle: "Ask yourself first",
+    reflectionQ1: "Is this spending a need, or just a passing want?",
+    reflectionQ1Need: "Need",
+    reflectionQ1Desire: "Want",
+    reflectionQ2: "Do you already own something that does the job?",
+    reflectionQ2Yes: "Yes",
+    reflectionQ2No: "No",
+    reflectionQ3: "Do you still see yourself actively using this in one month?",
+    reflectionQ3Certain: "Definitely",
+    reflectionQ3Unsure: "Not sure",
+    reflectionSubmit: "Answer and start the wait",
+    reflectionDismiss: "Cancel",
+    reflectionIncomplete: "Please answer every question.",
+    reflectionPenaltyToast:
+      "Your answers suggest this choice is quite impulsive. Cooldown extended by {percent}% to add friction.",
+    reflectionNoPenaltyToast: "No penalty from your answers—the wait time stays at the standard length.",
     languageLabel: "Language",
     languageHelp: "Choose the app interface language.",
     currencyCodeLabel: "Currency code",
@@ -405,10 +462,10 @@ const TRANSLATIONS = {
     regretVotePending: "Regret vote: Pending",
     savedFullBadge: "Waited full time",
     savedFullMeta: "Not purchased after the timer ended.\nCreated: {createdAt}\nDecision date: {statusDate}",
-    savedEarlyBadge: "Canceled early",
+    savedEarlyBadge: "Canceled",
     savedEarlyMeta: "Canceled before the timer ended.\nCreated: {createdAt}\nDecision date: {statusDate}",
-    earlyBoughtEyebrow: "Early purchase",
-    earlySavedEyebrow: "Early cancel",
+    earlyBoughtEyebrow: "Purchase before timer ends",
+    earlySavedEyebrow: "No purchase",
     earlyBoughtTitle: "You bought it before cooldown ended",
     earlySavedTitle: "Good call, you kept the money",
     earlyBoughtMessage: "You completed the purchase for {name} before the timer ended. Waiting until the end next time may make the decision clearer.",
@@ -422,6 +479,19 @@ const TRANSLATIONS = {
     rulesSavedTitle: "Your settings have been saved",
     rulesSavedMessage: "Changes were saved successfully.",
     clearConfirm: "Delete all CoolDown data and images?",
+    goalSettingsEyebrow: "Goal piggy bank",
+    goalSettingsTitle: "Route cancelled spending",
+    goalSettingsHelp: "Amounts from items you give up on are added to this goal; see progress on the wallet screen.",
+    goalNameLabel: "Goal name",
+    goalNamePlaceholder: "E.g. Bali trip",
+    goalTargetLabel: "Target amount",
+    goalTargetPlaceholder: "E.g. 80,000.00",
+    goalCurrentSavedLabel: "Saved toward this goal",
+    goalDefaultName: "Goal",
+    goalPercentDone: "complete",
+    goalAccumulatedLabel: "Saved",
+    goalCardEyebrow: "Savings goal",
+    goalProgressToast: "Nice! That added another {percent}% toward your goal ({goalName}).",
   },
 };
 
@@ -449,6 +519,10 @@ const state = {
     longestStreak: 0,
     lastStreakCheckDate: null,
   },
+  goal: structuredClone(DEFAULT_GOAL),
+  pendingWish: null,
+  /** @type {Array<{ id: string, itemId: string, recordedAt: string, productName: string, price: number, q1: string, q2: string, q3: string, penaltyMultiplier: number }>} */
+  reflectionTable: [],
 };
 
 const elements = {
@@ -477,7 +551,6 @@ const elements = {
   savedGrid: document.querySelector("#savedGrid"),
   savedEmpty: document.querySelector("#savedEmpty"),
   totalSaved: document.querySelector("#totalSaved"),
-  earlySaved: document.querySelector("#earlySaved"),
   totalBought: document.querySelector("#totalBought"),
   successRate: document.querySelector("#successRate"),
   successBar: document.querySelector("#successBar"),
@@ -540,7 +613,26 @@ const elements = {
   extendDurationUnitHour: document.querySelector("#extendDurationUnitHour"),
   extendDurationUnitDay: document.querySelector("#extendDurationUnitDay"),
   extendDurationUnitsGroup: document.querySelector(".extend-duration-units"),
+  reflectionModal: document.querySelector("#reflectionModal"),
+  reflectionForm: document.querySelector("#reflectionForm"),
+  reflectionSubmitButton: document.querySelector("#reflectionSubmitButton"),
+  reflectionDismissButton: document.querySelector("#reflectionDismissButton"),
+  reflectionCloseButton: document.querySelector("#reflectionCloseButton"),
+  enableReflectionForm: document.querySelector("#enableReflectionForm"),
+  goalProgressSection: document.querySelector("#goalProgressSection"),
+  goalProgressTitle: document.querySelector("#goalProgressTitle"),
+  goalProgressBadge: document.querySelector("#goalProgressBadge"),
+  goalProgressStats: document.querySelector("#goalProgressStats"),
+  goalProgressFill: document.querySelector("#goalProgressFill"),
+  goalName: document.querySelector("#goalName"),
+  goalTargetAmount: document.querySelector("#goalTargetAmount"),
+  goalCurrentHelp: document.querySelector("#goalCurrentHelp"),
+  goalCurrentDisplay: document.querySelector("#goalCurrentDisplay"),
+  goalSnackbar: document.querySelector("#goalSnackbar"),
+  goalConfettiCanvas: document.querySelector("#goalConfettiCanvas"),
 };
+
+let goalSnackbarTimer = null;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -564,8 +656,14 @@ function init() {
 function loadState() {
   state.settings = normalizeSettings(readJson(STORAGE_KEYS.settings, DEFAULT_SETTINGS));
   state.items = readJson(STORAGE_KEYS.items, []).map(normalizeItem);
+  state.goal = normalizeGoal(readJson(STORAGE_KEYS.goal, DEFAULT_GOAL));
+  state.reflectionTable = readJson(STORAGE_KEYS.reflectionTable, [])
+    .map(normalizeReflectionTableRow)
+    .filter(Boolean);
+  ensureReflectionRowsFromItems();
   saveSettings();
   saveItems();
+  saveGoal();
 }
 
 function loadAuthState() {
@@ -602,6 +700,7 @@ function normalizeSettings(settings) {
 
   return {
     allowEarlyCancel: Boolean(merged.allowEarlyCancel),
+    enableReflectionForm: Boolean(merged.enableReflectionForm),
     currencyCode: normalizeCurrencyCode(merged.currencyCode),
     hourlyWage: Math.max(0, Number(merged.hourlyWage) || 0),
     language: normalizeLanguage(merged.language),
@@ -618,21 +717,126 @@ function normalizeSettings(settings) {
   };
 }
 
+function clampPenaltyMultiplier(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(1.6, n);
+}
+
+/** @returns {{ q1: string, q2: string, q3: string } | null} */
+function normalizeReflectionAnswers(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  if (raw.q1 && raw.q2 && raw.q3) {
+    const q1 = ["need", "desire"].includes(raw.q1) ? raw.q1 : null;
+    const q2 = ["yes", "no"].includes(raw.q2) ? raw.q2 : null;
+    const q3 = ["certain", "unsure"].includes(raw.q3) ? raw.q3 : null;
+    if (q1 && q2 && q3) return { q1, q2, q3 };
+  }
+  if ("isNeed" in raw && "hasSimilar" in raw && "willUse" in raw) {
+    return {
+      q1: raw.isNeed ? "need" : "desire",
+      q2: raw.hasSimilar ? "yes" : "no",
+      q3: raw.willUse ? "certain" : "unsure",
+    };
+  }
+  return null;
+}
+
+function normalizeReflectionTableRow(raw) {
+  if (!raw || typeof raw !== "object" || !raw.itemId) return null;
+  const ra = normalizeReflectionAnswers(raw);
+  if (!ra) return null;
+  const recordedAt = raw.recordedAt && !Number.isNaN(Date.parse(raw.recordedAt)) ? raw.recordedAt : new Date().toISOString();
+  return {
+    id: raw.id || createId(),
+    itemId: String(raw.itemId),
+    recordedAt,
+    productName: String(raw.productName ?? ""),
+    price: Math.max(0, Number(raw.price) || 0),
+    q1: ra.q1,
+    q2: ra.q2,
+    q3: ra.q3,
+    penaltyMultiplier: clampPenaltyMultiplier(raw.penaltyMultiplier),
+  };
+}
+
+function saveReflectionTable() {
+  localStorage.setItem(STORAGE_KEYS.reflectionTable, JSON.stringify(state.reflectionTable));
+}
+
+function ensureReflectionRowsFromItems() {
+  const seen = new Set(state.reflectionTable.map((r) => r.itemId));
+  let changed = false;
+  for (const item of state.items) {
+    const ra = normalizeReflectionAnswers(item.reflectionAnswers);
+    if (!ra || seen.has(item.id)) continue;
+    state.reflectionTable.push({
+      id: createId(),
+      itemId: item.id,
+      recordedAt: item.dateAdded,
+      productName: item.productName,
+      price: item.price,
+      q1: ra.q1,
+      q2: ra.q2,
+      q3: ra.q3,
+      penaltyMultiplier: clampPenaltyMultiplier(item.penaltyMultiplier),
+    });
+    seen.add(item.id);
+    changed = true;
+  }
+  if (changed) {
+    state.reflectionTable.sort((a, b) => new Date(b.recordedAt) - new Date(a.recordedAt));
+    saveReflectionTable();
+  }
+}
+
+function appendReflectionTableRow(row) {
+  const normalized = normalizeReflectionTableRow(row);
+  if (!normalized) return;
+  state.reflectionTable.unshift(normalized);
+  saveReflectionTable();
+}
+
 function normalizeItem(item) {
-  const assignedWaitHours = Number(item.assignedWaitHours) || getWaitHours(Number(item.price) || 0);
+  const price = Number(item.price) || 0;
+  const rulesBase = getWaitHours(price);
+
+  let baseWaitHours = Number(item.baseWaitHours);
+  if (!Number.isFinite(baseWaitHours) || baseWaitHours <= 0) {
+    baseWaitHours = rulesBase;
+  }
+
+  let penaltyMultiplier = clampPenaltyMultiplier(item.penaltyMultiplier);
+  const computedAssigned = Math.max(0.01, baseWaitHours * penaltyMultiplier);
+
+  let assignedWaitHours = Number(item.assignedWaitHours);
+  if (!Number.isFinite(assignedWaitHours) || assignedWaitHours <= 0) {
+    assignedWaitHours = computedAssigned;
+  }
+
+  const reflectionAnswers = normalizeReflectionAnswers(item.reflectionAnswers);
+
   const dateAdded = item.dateAdded || new Date().toISOString();
   const status = item.status || "waiting";
   const boughtDate = status === "bought" ? item.boughtDate || item.statusChangedDate || dateAdded : item.boughtDate || null;
   const regretStatus = ["pending", "happy", "regretted"].includes(item.regretStatus) ? item.regretStatus : "pending";
 
+  const expireDate =
+    item.expireDate && !Number.isNaN(Date.parse(item.expireDate))
+      ? item.expireDate
+      : new Date(new Date(dateAdded).getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString();
+
   return {
     id: item.id || createId(),
     productName: item.productName || t("unnamedProduct"),
-    price: Number(item.price) || 0,
+    price,
     hasImage: Boolean(item.hasImage),
     dateAdded,
+    baseWaitHours,
+    penaltyMultiplier,
     assignedWaitHours,
-    expireDate: item.expireDate || new Date(new Date(dateAdded).getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString(),
+    reflectionAnswers,
+    expireDate,
     status,
     statusChangedDate: item.statusChangedDate || (status !== "waiting" ? dateAdded : null),
     boughtDate,
@@ -645,6 +849,7 @@ function saveSettings() {
     STORAGE_KEYS.settings,
     JSON.stringify({
       allowEarlyCancel: state.settings.allowEarlyCancel,
+      enableReflectionForm: state.settings.enableReflectionForm,
       currencyCode: state.settings.currencyCode,
       hourlyWage: state.settings.hourlyWage,
       language: state.settings.language,
@@ -661,6 +866,148 @@ function saveSettings() {
 
 function saveItems() {
   localStorage.setItem(STORAGE_KEYS.items, JSON.stringify(state.items));
+}
+
+function normalizeGoal(raw) {
+  const merged = { ...DEFAULT_GOAL, ...raw };
+  return {
+    goalName: String(merged.goalName ?? "").trim(),
+    targetAmount: Math.max(0, Number(merged.targetAmount) || 0),
+    currentAmount: Math.max(0, Number(merged.currentAmount) || 0),
+  };
+}
+
+function saveGoal() {
+  localStorage.setItem(
+    STORAGE_KEYS.goal,
+    JSON.stringify({
+      goalName: state.goal.goalName,
+      targetAmount: state.goal.targetAmount,
+      currentAmount: state.goal.currentAmount,
+    }),
+  );
+}
+
+function addToGoalAndGetToastMessage(addedAmount) {
+  const delta = Math.max(0, Number(addedAmount) || 0);
+  state.goal.currentAmount = Math.max(0, state.goal.currentAmount + delta);
+  saveGoal();
+
+  const { goalName, targetAmount } = state.goal;
+  if (targetAmount <= 0) return null;
+
+  const slicePct = Math.min(100, (delta / targetAmount) * 100);
+  const displayName = goalName.trim() || t("goalDefaultName");
+
+  return t("goalProgressToast", {
+    goalName: displayName,
+    percent: formatNumber(slicePct),
+  });
+}
+
+function renderGoalProgress() {
+  if (!elements.goalProgressSection) return;
+
+  const { goalName, targetAmount, currentAmount } = state.goal;
+  const hasTarget = targetAmount > 0;
+  const displayName = goalName.trim() || t("goalDefaultName");
+  const show = hasTarget;
+
+  elements.goalProgressSection.hidden = !show;
+  if (!show) return;
+
+  const overallPct = Math.min(100, Math.round((currentAmount / targetAmount) * 100));
+  elements.goalProgressTitle.textContent = displayName;
+  elements.goalProgressBadge.textContent = `%${overallPct} ${t("goalPercentDone")}`;
+  const targetFmt = formatCurrency(targetAmount);
+  elements.goalProgressStats.textContent = `${t("goalAccumulatedLabel")}: ${formatCurrency(currentAmount)} / ${targetFmt}`;
+  elements.goalProgressFill.style.width = `${overallPct}%`;
+
+  const track = elements.goalProgressSection.querySelector(".goal-progress-track");
+  if (track) {
+    track.setAttribute("aria-valuenow", String(overallPct));
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", "100");
+    track.setAttribute("aria-label", `${displayName}: %${overallPct}`);
+    track.removeAttribute("aria-hidden");
+  }
+}
+
+function showGoalSnackbar(message) {
+  if (!elements.goalSnackbar) return;
+  elements.goalSnackbar.textContent = message;
+  elements.goalSnackbar.hidden = false;
+  window.requestAnimationFrame(() => {
+    elements.goalSnackbar.classList.add("is-visible");
+  });
+
+  window.clearTimeout(goalSnackbarTimer);
+  goalSnackbarTimer = window.setTimeout(() => {
+    elements.goalSnackbar.classList.remove("is-visible");
+    goalSnackbarTimer = window.setTimeout(() => {
+      elements.goalSnackbar.hidden = true;
+      elements.goalSnackbar.textContent = "";
+    }, 300);
+  }, 5200);
+}
+
+function fireGoalConfetti() {
+  const canvas = elements.goalConfettiCanvas;
+  if (!canvas?.getContext) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  canvas.width = w;
+  canvas.height = h;
+
+  const durationMs = 2100;
+  const colors = ["#818cf8", "#34d399", "#fbbf24", "#f472b6", "#38bdf8", "#fb923c"];
+  const particles = Array.from({ length: 130 }, () => ({
+    x: w * (0.4 + Math.random() * 0.2),
+    y: h * (0.12 + Math.random() * 0.08),
+    vx: (Math.random() - 0.5) * 12,
+    vy: -(Math.random() * 16 + 4),
+    g: 0.2 + Math.random() * 0.12,
+    r: 2 + Math.random() * 3,
+    rot: Math.random() * Math.PI,
+    vr: (Math.random() - 0.5) * 0.22,
+    c: colors[Math.floor(Math.random() * colors.length)],
+  }));
+
+  const start = performance.now();
+
+  function frame(now) {
+    const elapsed = now - start;
+    ctx.clearRect(0, 0, w, h);
+
+    for (const p of particles) {
+      const alpha = Math.max(0, 1 - elapsed / durationMs);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.c;
+      ctx.globalAlpha = alpha;
+      ctx.fillRect(-p.r / 2, -p.r / 2, p.r * 2, p.r * 3);
+      ctx.restore();
+
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += p.g;
+      p.rot += p.vr;
+    }
+
+    if (elapsed < durationMs) {
+      window.requestAnimationFrame(frame);
+    } else {
+      ctx.clearRect(0, 0, w, h);
+      canvas.width = 0;
+      canvas.height = 0;
+    }
+  }
+
+  window.requestAnimationFrame(frame);
 }
 
 function saveStreakState() {
@@ -746,6 +1093,13 @@ function bindEvents() {
     renderWaitingRoom();
   });
 
+  if (elements.enableReflectionForm) {
+    elements.enableReflectionForm.addEventListener("change", () => {
+      state.settings.enableReflectionForm = elements.enableReflectionForm.checked;
+      saveSettings();
+    });
+  }
+
   elements.languageSelect.addEventListener("change", () => {
     state.settings.language = normalizeLanguage(elements.languageSelect.value);
     saveSettings();
@@ -783,6 +1137,22 @@ function bindEvents() {
     renderAll();
   });
 
+  if (elements.goalName && elements.goalTargetAmount) {
+    elements.goalName.addEventListener("change", () => {
+      state.goal.goalName = elements.goalName.value.trim();
+      saveGoal();
+      renderGoalProgress();
+      if (elements.goalCurrentHelp && elements.goalCurrentDisplay) {
+        elements.goalCurrentDisplay.textContent = formatCurrency(state.goal.currentAmount);
+      }
+    });
+    elements.goalTargetAmount.addEventListener("change", () => {
+      state.goal.targetAmount = Math.max(0, parseCurrencyInput(elements.goalTargetAmount.value));
+      saveGoal();
+      renderGoalProgress();
+    });
+  }
+
   elements.saveRulesButton.addEventListener("click", handleRulesSave);
   elements.clearDataButton.addEventListener("click", handleClearData);
   elements.settingsCloseButton.addEventListener("click", closeSettingsDrawer);
@@ -805,6 +1175,10 @@ function bindEvents() {
       }
       if (!elements.extendDurationModal.hidden) {
         hideExtendDurationModal();
+        return;
+      }
+      if (elements.reflectionModal && !elements.reflectionModal.hidden) {
+        cancelReflectionModal();
         return;
       }
       closeOpenDrawers();
@@ -830,6 +1204,33 @@ function bindEvents() {
   elements.extendDurationUnitHour.addEventListener("click", () => setExtendModalUnit("hour"));
   elements.extendDurationUnitDay.addEventListener("click", () => setExtendModalUnit("day"));
   elements.extendDurationConfirmButton.addEventListener("click", commitExtendDuration);
+
+  if (elements.reflectionForm) {
+    elements.reflectionForm.addEventListener("click", (event) => {
+      const btn = event.target.closest(".reflection-choice");
+      if (!btn || !elements.reflectionForm.contains(btn)) return;
+      const group = btn.closest(".reflection-radios");
+      if (!group) return;
+      group.querySelectorAll(".reflection-choice").forEach((b) => {
+        b.classList.remove("is-selected");
+        b.setAttribute("aria-pressed", "false");
+      });
+      btn.classList.add("is-selected");
+      btn.setAttribute("aria-pressed", "true");
+    });
+    elements.reflectionForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitReflectionModal();
+    });
+  }
+  elements.reflectionSubmitButton?.addEventListener("click", () => submitReflectionModal());
+  elements.reflectionDismissButton?.addEventListener("click", cancelReflectionModal);
+  elements.reflectionCloseButton?.addEventListener("click", cancelReflectionModal);
+  elements.reflectionModal?.addEventListener("click", (event) => {
+    if (event.target === elements.reflectionModal) {
+      cancelReflectionModal();
+    }
+  });
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
@@ -1017,25 +1418,128 @@ async function handleSubmit(event) {
       title: t("budgetOverdraftTitle"),
       message: t("budgetOverdraftMessage", { amount: formatCurrency(price) }),
       confirmText: t("budgetOverdraftAction"),
-      onConfirm: () => addWaitingItem(productName, price),
+      onConfirm: () => startWishAddFlow(productName, price),
     });
     return;
   }
 
-  await addWaitingItem(productName, price);
+  await startWishAddFlow(productName, price);
 }
 
-async function addWaitingItem(productName, price) {
-  const id = createId();
-  const assignedWaitHours = getWaitHours(price);
+function computeReflectionPenalty(answers) {
+  const n = normalizeReflectionAnswers(answers);
+  if (!n) return 1;
+  let m = 1;
+  if (n.q1 === "desire") m += 0.2;
+  if (n.q2 === "yes") m += 0.2;
+  if (n.q3 === "unsure") m += 0.2;
+  return clampPenaltyMultiplier(m);
+}
+
+async function startWishAddFlow(productName, price) {
+  if (!state.settings.enableReflectionForm) {
+    await addWaitingItem(productName, price, null);
+    return;
+  }
+  state.pendingWish = { productName, price };
+  openReflectionModal();
+}
+
+function resetReflectionForm() {
+  if (!elements.reflectionForm) return;
+  elements.reflectionForm.querySelectorAll(".reflection-choice").forEach((btn) => {
+    btn.classList.remove("is-selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+}
+
+function parseReflectionFormAnswers() {
+  const form = elements.reflectionForm;
+  if (!form) return null;
+  function selectedValue(field) {
+    const selected = form.querySelector(`[data-reflection-field="${field}"] .reflection-choice.is-selected`);
+    return selected?.dataset?.value ?? null;
+  }
+  const q1 = selectedValue("q1");
+  const q2 = selectedValue("q2");
+  const q3 = selectedValue("q3");
+  if (!q1 || !q2 || !q3) return null;
+  if (!["need", "desire"].includes(q1) || !["yes", "no"].includes(q2) || !["certain", "unsure"].includes(q3)) {
+    return null;
+  }
+  return { q1, q2, q3 };
+}
+
+function openReflectionModal() {
+  if (!elements.reflectionModal) return;
+  resetReflectionForm();
+  elements.reflectionModal.hidden = false;
+  elements.reflectionSubmitButton?.focus();
+}
+
+function hideReflectionModal() {
+  if (!elements.reflectionModal) return;
+  elements.reflectionModal.hidden = true;
+  state.pendingWish = null;
+}
+
+async function submitReflectionModal() {
+  const answers = parseReflectionFormAnswers();
+  if (!answers) {
+    showInfoModal({
+      eyebrow: t("reflectionModalEyebrow"),
+      title: t("reflectionModalTitle"),
+      message: t("reflectionIncomplete"),
+    });
+    return;
+  }
+
+  const pending = state.pendingWish;
+  if (!pending) {
+    hideReflectionModal();
+    return;
+  }
+
+  const penaltyMultiplier = computeReflectionPenalty(answers);
+  const { productName, price } = pending;
+  state.pendingWish = null;
+  if (elements.reflectionModal) {
+    elements.reflectionModal.hidden = true;
+  }
+
+  await addWaitingItem(productName, price, { reflectionAnswers: answers, penaltyMultiplier });
+}
+
+function cancelReflectionModal() {
+  hideReflectionModal();
+}
+
+async function addWaitingItem(productName, price, reflectionOptions) {
+  const baseWaitHours = getWaitHours(price);
+  let penaltyMultiplier = 1;
+  let reflectionAnswers = null;
+
+  if (reflectionOptions?.reflectionAnswers) {
+    reflectionAnswers = normalizeReflectionAnswers(reflectionOptions.reflectionAnswers);
+    if (reflectionAnswers) {
+      penaltyMultiplier = clampPenaltyMultiplier(
+        reflectionOptions.penaltyMultiplier ?? computeReflectionPenalty(reflectionAnswers),
+      );
+    }
+  }
+
+  const assignedWaitHours = Math.max(0.01, baseWaitHours * penaltyMultiplier);
   const dateAdded = new Date();
   const item = {
-    id,
+    id: createId(),
     productName,
     price,
     hasImage: Boolean(state.selectedImage),
     dateAdded: dateAdded.toISOString(),
+    baseWaitHours,
+    penaltyMultiplier,
     assignedWaitHours,
+    reflectionAnswers,
     expireDate: new Date(dateAdded.getTime() + assignedWaitHours * 60 * 60 * 1000).toISOString(),
     status: "waiting",
     statusChangedDate: null,
@@ -1044,14 +1548,35 @@ async function addWaitingItem(productName, price) {
   };
 
   if (state.selectedImage) {
-    await saveImageToOpfs(id, state.selectedImage);
+    await saveImageToOpfs(item.id, state.selectedImage);
   }
 
   state.items.unshift(item);
+  if (reflectionAnswers) {
+    appendReflectionTableRow({
+      id: createId(),
+      itemId: item.id,
+      recordedAt: item.dateAdded,
+      productName: item.productName,
+      price: item.price,
+      q1: reflectionAnswers.q1,
+      q2: reflectionAnswers.q2,
+      q3: reflectionAnswers.q3,
+      penaltyMultiplier: item.penaltyMultiplier,
+    });
+  }
   saveItems();
   resetForm();
   renderAll();
   showTab("waiting");
+
+  if (reflectionAnswers) {
+    if (penaltyMultiplier > 1) {
+      showGoalSnackbar(t("reflectionPenaltyToast", { percent: formatNumber((penaltyMultiplier - 1) * 100) }));
+    } else {
+      showGoalSnackbar(t("reflectionNoPenaltyToast"));
+    }
+  }
 }
 
 function requiresLoginForNewItem() {
@@ -1258,6 +1783,18 @@ function renderNoSpendStreak() {
 }
 
 function renderBudgetHealth() {
+  const limit = state.settings.monthlyBudgetLimit;
+  if (limit <= 0) {
+    elements.budgetHealthCards.forEach((card) => {
+      card.hidden = true;
+    });
+    return;
+  }
+
+  elements.budgetHealthCards.forEach((card) => {
+    card.hidden = false;
+  });
+
   const budget = getBudgetHealth();
 
   elements.budgetHealthCards.forEach((card) => {
@@ -1751,6 +2288,9 @@ function applyTranslations() {
 
 function renderSettings() {
   elements.allowEarlyCancel.checked = state.settings.allowEarlyCancel;
+  if (elements.enableReflectionForm) {
+    elements.enableReflectionForm.checked = state.settings.enableReflectionForm;
+  }
   elements.languageSelect.value = state.settings.language;
   elements.currencyCode.value = state.settings.currencyCode;
   elements.hourlyWage.value = state.settings.hourlyWage > 0 ? formatNumber(state.settings.hourlyWage) : "";
@@ -1778,6 +2318,13 @@ function renderSettings() {
     `;
     elements.rulesTable.append(row);
   });
+
+  if (elements.goalName && elements.goalTargetAmount && elements.goalCurrentDisplay && elements.goalCurrentHelp) {
+    elements.goalName.value = state.goal.goalName;
+    elements.goalTargetAmount.value = state.goal.targetAmount > 0 ? formatNumber(state.goal.targetAmount) : "";
+    elements.goalCurrentDisplay.textContent = formatCurrency(state.goal.currentAmount);
+    elements.goalCurrentHelp.hidden = state.goal.currentAmount <= 0;
+  }
 }
 
 async function renderWaitingRoom() {
@@ -1810,7 +2357,6 @@ async function renderWallet() {
   }
 
   const totalSaved = savedItems.reduce((sum, item) => sum + item.price, 0);
-  const earlySaved = savedItems.filter((item) => item.status === "saved_early").reduce((sum, item) => sum + item.price, 0);
   const totalBought = boughtItems.reduce((sum, item) => sum + item.price, 0);
   const completedDecisions = completedItems.length;
   const success = completedDecisions ? Math.round((savedItems.length / completedDecisions) * 100) : 0;
@@ -1819,13 +2365,13 @@ async function renderWallet() {
   const regretRate = answeredRegretItems.length ? Math.round((regrettedCount / answeredRegretItems.length) * 100) : null;
 
   elements.totalSaved.textContent = formatCurrency(totalSaved);
-  elements.earlySaved.textContent = formatCurrency(earlySaved);
   elements.totalBought.textContent = formatCurrency(totalBought);
   elements.successRate.textContent = `%${success}`;
   elements.successBar.style.width = `${success}%`;
   elements.regretRate.textContent = regretRate === null ? t("regretNoData") : `%${regretRate}`;
   elements.heroSavedTotal.textContent = formatCurrency(totalSaved);
   elements.heroSuccessRate.textContent = t("heroSuccess", { success });
+  renderGoalProgress();
 }
 
 async function createProductCard(item, mode) {
@@ -2040,29 +2586,51 @@ function handleDecision(id, status) {
   if (!item) return;
 
   const isEarlyDecision = getRemainingMs(item) > 0;
-  updateItemStatus(id, status);
+  const result = updateItemStatus(id, status);
 
   if (status === "bought") {
     showStreakResetModal();
-  } else if (isEarlyDecision) {
-    showEarlyDecisionModal(item, status);
+    return;
+  }
+
+  const isCancelSaved = status === "saved_full" || status === "saved_early";
+  if (!isCancelSaved) return;
+
+  fireGoalConfetti();
+
+  const msg = result?.goalToastMessage;
+  const showSnack = () => {
+    if (msg) {
+      showGoalSnackbar(msg);
+    }
+  };
+
+  if (isEarlyDecision) {
+    showEarlyDecisionModal(item, status, showSnack);
+  } else {
+    showSnack();
   }
 }
 
 function updateItemStatus(id, status) {
   const item = state.items.find((candidate) => candidate.id === id);
-  if (!item) return;
+  if (!item) return null;
   const changedAt = new Date().toISOString();
 
   item.status = status;
   item.statusChangedDate = changedAt;
+  let goalToastMessage = null;
   if (status === "bought") {
     item.boughtDate = changedAt;
     item.regretStatus = "pending";
     recordPurchaseForStreak(changedAt);
+  } else if (status === "saved_full" || status === "saved_early") {
+    goalToastMessage = addToGoalAndGetToastMessage(item.price);
   }
+
   saveItems();
   renderAll();
+  return { goalToastMessage };
 }
 
 function confirmDeleteItem(id) {
@@ -2114,7 +2682,7 @@ function formatRemaining(ms) {
   return t("remainingHours", { hours, minutes, seconds });
 }
 
-function showEarlyDecisionModal(item, status) {
+function showEarlyDecisionModal(item, status, onDismiss) {
   prepareInfoModal();
   const boughtEarly = status === "bought";
   elements.feedbackIcon.textContent = boughtEarly ? "!" : "TL";
@@ -2125,6 +2693,10 @@ function showEarlyDecisionModal(item, status) {
     ? t("earlyBoughtMessage", { name: item.productName })
     : t("earlySavedMessage", { name: item.productName, amount: formatCurrency(item.price) });
   elements.feedbackModal.hidden = false;
+  elements.modalOkButton.onclick = () => {
+    hideFeedbackModal();
+    onDismiss?.();
+  };
   elements.modalOkButton.focus();
 }
 
@@ -2321,8 +2893,12 @@ async function handleClearData() {
 
   state.items = [];
   state.settings = structuredClone(DEFAULT_SETTINGS);
+  state.goal = structuredClone(DEFAULT_GOAL);
+  state.reflectionTable = [];
+  saveReflectionTable();
   saveItems();
   saveSettings();
+  saveGoal();
   await clearOpfsImages();
   revokeObjectUrls();
   resetForm();

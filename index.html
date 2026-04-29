@@ -122,6 +122,27 @@
             <h2 data-i18n="walletTitle">Karar geçmişi</h2>
           </div>
 
+          <section class="goal-progress-card card-panel" id="goalProgressSection" hidden>
+            <div class="goal-progress-inner">
+              <p class="eyebrow goal-progress-eyebrow" data-i18n="goalCardEyebrow">Hedef</p>
+              <div class="goal-progress-title-row">
+                <h3 class="goal-progress-title" id="goalProgressTitle"></h3>
+                <span class="goal-progress-badge" id="goalProgressBadge"></span>
+              </div>
+              <p class="goal-progress-amounts" id="goalProgressStats"></p>
+              <div
+                class="goal-progress-track"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                aria-label=""
+              >
+                <div class="goal-progress-fill" id="goalProgressFill"></div>
+              </div>
+            </div>
+          </section>
+
           <section class="budget-health-card" data-budget-health>
             <div class="budget-health-header">
               <span data-i18n="budgetHealthTitle">Can Barı</span>
@@ -145,10 +166,6 @@
             <article class="report-card accent">
               <span data-i18n="totalSaved">Toplam kurtarılan para</span>
               <strong id="totalSaved">0,00 TL</strong>
-            </article>
-            <article class="report-card">
-              <span data-i18n="earlySaved">Erken pes ederek kurtarılan</span>
-              <strong id="earlySaved">0,00 TL</strong>
             </article>
             <article class="report-card">
               <span data-i18n="totalBought">Satın alınan toplam</span>
@@ -187,11 +204,26 @@
               <section class="card-panel">
                 <div class="setting-row">
                   <div>
-                    <h3 data-i18n="earlyActionTitle">Erken işlem izni</h3>
+                    <h3 data-i18n="earlyActionTitle">Süre dolmadan karar izni</h3>
                     <p data-i18n="earlyActionCopy">Sayaç bitmeden "Satın Aldım" ve "Vazgeçtim" butonlarının kullanılmasına izin ver.</p>
                   </div>
                   <label class="switch">
                     <input id="allowEarlyCancel" type="checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+              </section>
+
+              <section class="card-panel">
+                <div class="setting-row">
+                  <div>
+                    <h3 data-i18n="reflectionSettingsTitle">Ön-Yüzleşme formu</h3>
+                    <p data-i18n="reflectionSettingsHelp">
+                      Açıkken yeni istekte kısa sorular gösterilir; dürtüsel cevaplarda bekleme süresi kurala göre uzar.
+                    </p>
+                  </div>
+                  <label class="switch">
+                    <input id="enableReflectionForm" type="checkbox" />
                     <span></span>
                   </label>
                 </div>
@@ -246,6 +278,28 @@
                   <input id="budgetResetDay" type="number" inputmode="numeric" min="1" max="31" step="1" placeholder="1" data-i18n-placeholder="budgetResetDayPlaceholder" />
                 </label>
                 <p class="setting-help" data-i18n="budgetResetDayHelp">Maaş günü mantığıyla bütçenin ayın hangi günü %100'e döneceğini belirler.</p>
+              </section>
+
+              <section class="card-panel">
+                <div class="section-heading compact">
+                  <p class="eyebrow" data-i18n="goalSettingsEyebrow">Hedef kumbarası</p>
+                  <h3 data-i18n="goalSettingsTitle">İptal tutarlarını yönlendir</h3>
+                </div>
+                <p class="setting-help" data-i18n="goalSettingsHelp">
+                  Vazgeçtiğin harcamaların tutarı bu hedefe eklenir; kumbara ekranında ilerlemeyi görürsün.
+                </p>
+                <label>
+                  <span data-i18n="goalNameLabel">Hedef adı</span>
+                  <input id="goalName" type="text" maxlength="120" placeholder="Örn: Bali tatili" data-i18n-placeholder="goalNamePlaceholder" autocomplete="off" />
+                </label>
+                <label>
+                  <span data-i18n="goalTargetLabel">Hedef tutar</span>
+                  <input id="goalTargetAmount" type="text" inputmode="decimal" placeholder="Örn: 80.000,00" data-i18n-placeholder="goalTargetPlaceholder" autocomplete="off" />
+                </label>
+                <p class="setting-help goal-current-line" id="goalCurrentHelp" hidden>
+                  <span data-i18n="goalCurrentSavedLabel">Hedef kumbarasında biriken</span>:
+                  <strong id="goalCurrentDisplay">0,00 TL</strong>
+                </p>
               </section>
 
               <section class="card-panel">
@@ -330,12 +384,74 @@
           </svg>
         </button>
         <span class="modal-icon" id="feedbackIcon" aria-hidden="true">!</span>
-        <p class="eyebrow" id="feedbackEyebrow">Erken karar</p>
+        <p class="eyebrow" id="feedbackEyebrow"></p>
         <h2 id="feedbackTitle">Mesaj</h2>
         <p id="feedbackMessage"></p>
         <div class="modal-actions">
           <button class="secondary-button" id="modalCancelButton" type="button" hidden data-i18n="cancel">İptal</button>
           <button class="primary-button" id="modalOkButton" type="button" data-i18n="ok">Tamam</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-backdrop reflection-modal-backdrop" id="reflectionModal" hidden>
+      <section
+        class="feedback-modal reflection-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reflectionModalTitleText"
+      >
+        <button
+          class="modal-close"
+          id="reflectionCloseButton"
+          type="button"
+          aria-label="Mesajı kapat"
+          data-i18n-aria-label="closeMessage"
+        >
+          <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+        <p class="eyebrow" data-i18n="reflectionModalEyebrow">Ön yüzleşme</p>
+        <h2 id="reflectionModalTitleText" data-i18n="reflectionModalTitle">Önce kendine sor</h2>
+        <form id="reflectionForm" class="reflection-form">
+          <fieldset class="reflection-fieldset">
+            <legend data-i18n="reflectionQ1">Bu harcama bir ihtiyaç mı, yoksa istek mi?</legend>
+            <div class="reflection-radios" data-reflection-field="q1" role="group">
+              <button type="button" class="reflection-choice" data-value="need" aria-pressed="false" data-i18n="reflectionQ1Need">
+                İhtiyaç
+              </button>
+              <button type="button" class="reflection-choice" data-value="desire" aria-pressed="false" data-i18n="reflectionQ1Desire">
+                İstek
+              </button>
+            </div>
+          </fieldset>
+          <fieldset class="reflection-fieldset">
+            <legend data-i18n="reflectionQ2">Buna benzer işlev gören bir eşyan var mı?</legend>
+            <div class="reflection-radios" data-reflection-field="q2" role="group">
+              <button type="button" class="reflection-choice" data-value="yes" aria-pressed="false" data-i18n="reflectionQ2Yes">
+                Evet
+              </button>
+              <button type="button" class="reflection-choice" data-value="no" aria-pressed="false" data-i18n="reflectionQ2No">
+                Hayır
+              </button>
+            </div>
+          </fieldset>
+          <fieldset class="reflection-fieldset">
+            <legend data-i18n="reflectionQ3">1 ay sonra hâlâ kullanıyor olacağını düşünüyor musun?</legend>
+            <div class="reflection-radios" data-reflection-field="q3" role="group">
+              <button type="button" class="reflection-choice" data-value="certain" aria-pressed="false" data-i18n="reflectionQ3Certain">
+                Kesinlikle
+              </button>
+              <button type="button" class="reflection-choice" data-value="unsure" aria-pressed="false" data-i18n="reflectionQ3Unsure">
+                Emin değilim
+              </button>
+            </div>
+          </fieldset>
+        </form>
+        <div class="modal-actions">
+          <button type="button" class="secondary-button" id="reflectionDismissButton" data-i18n="reflectionDismiss">Vazgeç</button>
+          <button type="button" class="primary-button" id="reflectionSubmitButton" data-i18n="reflectionSubmit">Cevapla ve Beklemeyi Başlat</button>
         </div>
       </section>
     </div>
@@ -439,6 +555,9 @@
         <img id="imageLightboxImg" class="image-lightbox-img" alt="" />
       </div>
     </div>
+
+    <div id="goalSnackbar" class="goal-snackbar" role="status" aria-live="polite" hidden></div>
+    <canvas id="goalConfettiCanvas" class="goal-confetti-canvas" aria-hidden="true"></canvas>
 
     <template id="productCardTemplate">
       <article class="product-card">
