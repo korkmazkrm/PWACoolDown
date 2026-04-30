@@ -575,6 +575,8 @@ const elements = {
   rulesTable: document.querySelector("#rulesTable"),
   settingsDrawer: document.querySelector("#settingsDrawer"),
   settingsCloseButton: document.querySelector("#settingsCloseButton"),
+  addDrawer: document.querySelector("#addDrawer"),
+  addCloseButton: document.querySelector("#addCloseButton"),
   authDrawer: document.querySelector("#authDrawer"),
   authCloseButton: document.querySelector("#authCloseButton"),
   saveRulesButton: document.querySelector("#saveRulesButton"),
@@ -644,6 +646,7 @@ function init() {
   loadState();
   loadStreakState();
   loadAuthState();
+  cacheShellDomRefs();
   bindEvents();
   updateNoSpendStreak();
   renderAll();
@@ -1076,8 +1079,18 @@ function saveStreakState() {
   );
 }
 
+/** Alt menü ve ana ekranlar HTML tamamlanınca yeniden bağlanır (defer edge-case). */
+function cacheShellDomRefs() {
+  elements.tabs = document.querySelectorAll("[data-tab]");
+  elements.screens = document.querySelectorAll(".screen");
+}
+
 function bindEvents() {
-  elements.tabs.forEach((button) => button.addEventListener("click", () => showTab(button.dataset.tab)));
+  document.querySelector(".bottom-nav")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-tab]");
+    if (!button || !event.currentTarget.contains(button)) return;
+    showTab(button.dataset.tab);
+  });
   elements.walletFilters.forEach((button) => {
     button.addEventListener("click", () => {
       state.walletFilter = button.dataset.walletFilter;
@@ -1230,6 +1243,12 @@ function bindEvents() {
       closeSettingsDrawer();
     }
   });
+  elements.addCloseButton?.addEventListener("click", closeAddDrawer);
+  elements.addDrawer?.addEventListener("click", (event) => {
+    if (event.target === elements.addDrawer) {
+      closeAddDrawer();
+    }
+  });
   elements.authCloseButton.addEventListener("click", closeAuthDrawer);
   elements.authDrawer.addEventListener("click", (event) => {
     if (event.target === elements.authDrawer) {
@@ -1348,6 +1367,11 @@ function showTab(tabName) {
     return;
   }
 
+  if (tabName === "add") {
+    openAddDrawer();
+    return;
+  }
+
   closeOpenDrawers({ restoreTab: false });
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === tabName;
@@ -1355,7 +1379,8 @@ function showTab(tabName) {
     button.setAttribute("aria-selected", String(isActive));
   });
 
-  elements.screens.forEach((screen) => {
+  const screens = document.querySelectorAll(".screen");
+  screens.forEach((screen) => {
     const isActive = screen.id === `screen-${tabName}`;
     screen.classList.toggle("active", isActive);
     screen.hidden = !isActive;
@@ -1364,6 +1389,7 @@ function showTab(tabName) {
 
 function openSettingsDrawer() {
   closeAuthDrawer({ restoreTab: false });
+  closeAddDrawer({ restoreTab: false });
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === "settings";
     button.classList.toggle("active", isActive);
@@ -1377,6 +1403,7 @@ function openSettingsDrawer() {
 
 function openAuthDrawer() {
   closeSettingsDrawer({ restoreTab: false });
+  closeAddDrawer({ restoreTab: false });
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === "auth";
     button.classList.toggle("active", isActive);
@@ -1388,6 +1415,27 @@ function openAuthDrawer() {
   elements.authCloseButton.focus();
 }
 
+function openAddDrawer() {
+  closeSettingsDrawer({ restoreTab: false });
+  closeAuthDrawer({ restoreTab: false });
+  elements.addDrawer?.classList.remove("is-closing");
+  elements.tabs.forEach((button) => {
+    const isActive = button.dataset.tab === "add";
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+  if (elements.addDrawer) {
+    elements.addDrawer.hidden = false;
+    document.body.classList.add("drawer-open");
+    elements.addCloseButton?.focus();
+  }
+}
+
+function closeAddDrawer({ restoreTab = true } = {}) {
+  if (!elements.addDrawer) return;
+  closeDrawer(elements.addDrawer, { restoreTab });
+}
+
 function closeSettingsDrawer({ restoreTab = true } = {}) {
   closeDrawer(elements.settingsDrawer, { restoreTab });
 }
@@ -1397,7 +1445,7 @@ function closeAuthDrawer({ restoreTab = true } = {}) {
 }
 
 function closeDrawer(drawer, { restoreTab = true } = {}) {
-  if (drawer.hidden || drawer.classList.contains("is-closing")) {
+  if (!drawer || drawer.hidden || drawer.classList.contains("is-closing")) {
     return;
   }
 
@@ -1414,23 +1462,30 @@ function closeDrawer(drawer, { restoreTab = true } = {}) {
 
     drawer.hidden = true;
     drawer.classList.remove("is-closing");
-    if (elements.settingsDrawer.hidden && elements.authDrawer.hidden) {
+    if (elements.settingsDrawer.hidden && elements.authDrawer.hidden && (!elements.addDrawer || elements.addDrawer.hidden)) {
       document.body.classList.remove("drawer-open");
     }
   };
 
-  panel.addEventListener("animationend", finishClose, { once: true });
+  if (panel) {
+    panel.addEventListener("animationend", finishClose, { once: true });
+  } else {
+    finishClose();
+  }
 }
 
 function closeOpenDrawers(options) {
   closeSettingsDrawer(options);
   closeAuthDrawer(options);
+  closeAddDrawer(options);
 }
 
 function restoreActiveTabFromVisibleScreen() {
-  const activeScreen = [...elements.screens].find((screen) => !screen.hidden);
+  const screens = document.querySelectorAll(".screen");
+  const activeScreen = [...screens].find((screen) => !screen.hidden);
   const activeTab = activeScreen?.id.replace("screen-", "");
 
+  cacheShellDomRefs();
   elements.tabs.forEach((button) => {
     const isActive = button.dataset.tab === activeTab;
     button.classList.toggle("active", isActive);

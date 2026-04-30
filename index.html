@@ -52,48 +52,7 @@
       </header>
 
       <main>
-        <div class="tabs" role="tablist" aria-label="CoolDown ekranları" data-i18n-aria-label="tabsAria">
-          <button class="tab-button active" type="button" role="tab" aria-selected="true" data-tab="add" data-i18n="tabAdd">Yeni İstek</button>
-          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="waiting" data-i18n="tabWaiting">Soğuma Odası</button>
-          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="wallet" data-i18n="tabWallet">Kumbara</button>
-          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="settings" data-i18n="tabSettings">Ayarlar</button>
-          <button class="tab-button" type="button" role="tab" aria-selected="false" data-tab="auth" data-i18n="tabAuth">Üyelik</button>
-        </div>
-
-        <section class="screen active" id="screen-add" role="tabpanel">
-          <div class="section-heading">
-            <p class="eyebrow" data-i18n="addEyebrow">Sepete eklemeden önce</p>
-            <h2 data-i18n="addTitle">Yeni istek ekle</h2>
-          </div>
-
-          <form class="add-form card-panel" id="itemForm" novalidate>
-            <button class="dropzone" id="dropzone" type="button">
-              <span class="dropzone-icon">+</span>
-              <strong data-i18n="uploadImage">Ürün görseli ekle</strong>
-              <small data-i18n="uploadHint">Galeriden seç veya kamerayla çek</small>
-              <img id="imagePreview" alt="Seçilen ürün görseli ön izlemesi" data-i18n-alt="imagePreviewAlt" hidden />
-            </button>
-            <input id="imageInput" name="image" type="file" accept="image/*" hidden />
-            <input id="cameraInput" name="cameraImage" type="file" accept="image/*" capture="environment" hidden />
-
-            <div class="form-grid">
-              <label>
-                <span data-i18n="productNameLabel">Ürün adı</span>
-                <input id="productName" name="productName" type="text" placeholder="Örn: Kablosuz kulaklık" data-i18n-placeholder="productNamePlaceholder" required />
-              </label>
-              <label>
-                <span data-i18n="priceLabel">Fiyat</span>
-                <input id="price" name="price" type="text" inputmode="decimal" placeholder="Örn: 1.500,50" data-i18n-placeholder="pricePlaceholder" required />
-              </label>
-            </div>
-
-            <div class="cooldown-hint" id="cooldownHint">Fiyat girildiğinde soğuma süreniz burada görünecek.</div>
-
-            <button class="primary-button" type="submit" data-i18n="addButton">CoolDown'a Al</button>
-          </form>
-        </section>
-
-        <section class="screen" id="screen-waiting" role="tabpanel" hidden>
+        <section class="screen active" id="screen-waiting" role="tabpanel">
           <div class="section-heading split-heading">
             <div>
               <p class="eyebrow" data-i18n="waitingEyebrow">Ana vitrin</p>
@@ -184,6 +143,48 @@
 
           <div class="product-grid saved-grid" id="savedGrid"></div>
           <p class="empty-state" id="savedEmpty" hidden data-i18n="historyEmpty">Henüz tamamlanan karar yok.</p>
+        </section>
+
+        <section class="settings-drawer-backdrop" id="addDrawer" role="dialog" aria-modal="true" aria-labelledby="addDrawerTitle" hidden>
+          <div class="settings-drawer-panel">
+            <div class="section-heading split-heading">
+              <div>
+                <p class="eyebrow" data-i18n="addEyebrow">Sepete eklemeden önce</p>
+                <h2 id="addDrawerTitle" data-i18n="addTitle">Yeni istek ekle</h2>
+              </div>
+              <button class="modal-close" id="addCloseButton" type="button" aria-label="Mesajı kapat" data-i18n-aria-label="closeMessage">
+                <svg class="modal-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <form class="add-form card-panel" id="itemForm" novalidate>
+              <button class="dropzone" id="dropzone" type="button">
+                <span class="dropzone-icon">+</span>
+                <strong data-i18n="uploadImage">Ürün görseli ekle</strong>
+                <small data-i18n="uploadHint">Galeriden seç veya kamerayla çek</small>
+                <img id="imagePreview" alt="Seçilen ürün görseli ön izlemesi" data-i18n-alt="imagePreviewAlt" hidden />
+              </button>
+              <input id="imageInput" name="image" type="file" accept="image/*" hidden />
+              <input id="cameraInput" name="cameraImage" type="file" accept="image/*" capture="environment" hidden />
+
+              <div class="form-grid">
+                <label>
+                  <span data-i18n="productNameLabel">Ürün adı</span>
+                  <input id="productName" name="productName" type="text" placeholder="Örn: Kablosuz kulaklık" data-i18n-placeholder="productNamePlaceholder" required />
+                </label>
+                <label>
+                  <span data-i18n="priceLabel">Fiyat</span>
+                  <input id="price" name="price" type="text" inputmode="decimal" placeholder="Örn: 1.500,50" data-i18n-placeholder="pricePlaceholder" required />
+                </label>
+              </div>
+
+              <div class="cooldown-hint" id="cooldownHint">Fiyat girildiğinde soğuma süreniz burada görünecek.</div>
+
+              <button class="primary-button" type="submit" data-i18n="addButton">CoolDown'a Al</button>
+            </form>
+          </div>
         </section>
 
         <section class="settings-drawer-backdrop" id="settingsDrawer" role="dialog" aria-modal="true" aria-labelledby="settingsDrawerTitle" hidden>
@@ -375,6 +376,56 @@
         </section>
       </main>
     </div>
+
+    <nav class="bottom-nav" role="tablist" aria-label="CoolDown ekranları" data-i18n-aria-label="tabsAria">
+      <div class="bottom-nav__inner">
+        <button class="tab-button bottom-nav__item active" type="button" role="tab" aria-selected="true" data-tab="waiting" data-i18n-aria-label="tabWaiting">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+          </span>
+          <span class="bottom-nav__label" data-i18n="tabWaiting">Soğuma Odası</span>
+        </button>
+        <button class="tab-button bottom-nav__item" type="button" role="tab" aria-selected="false" data-tab="wallet" data-i18n-aria-label="tabWallet">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+              <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+              <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+            </svg>
+          </span>
+          <span class="bottom-nav__label" data-i18n="tabWallet">Kumbara</span>
+        </button>
+        <button class="tab-button bottom-nav__item tab-button--fab" type="button" role="tab" aria-selected="false" data-tab="add" data-i18n-aria-label="tabAdd">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </span>
+          <span class="bottom-nav__label" data-i18n="tabAdd">Yeni İstek</span>
+        </button>
+        <button class="tab-button bottom-nav__item" type="button" role="tab" aria-selected="false" data-tab="settings" data-i18n-aria-label="tabSettings">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </span>
+          <span class="bottom-nav__label" data-i18n="tabSettings">Ayarlar</span>
+        </button>
+        <button class="tab-button bottom-nav__item" type="button" role="tab" aria-selected="false" data-tab="auth" data-i18n-aria-label="tabAuth">
+          <span class="bottom-nav__icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </span>
+          <span class="bottom-nav__label" data-i18n="tabAuth">Üyelik</span>
+        </button>
+      </div>
+    </nav>
 
     <div class="modal-backdrop" id="feedbackModal" hidden>
       <section class="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle" aria-describedby="feedbackMessage">
