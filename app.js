@@ -24,6 +24,14 @@ const API_BASE_URLS =
 const FREE_ITEM_LIMIT = 10;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Uzun basarak "Satın Aldım" sürtünmesi (yüzleşme katmanı); ayarlar ekranından değiştirilemez */
+const ENABLE_HOLD_TO_BREAK = true;
+/** Parmağı çekene kadar basılı tutulması gereken süre (saniye); 1'den küçük değerler 1 saniyeye yükseltilir */
+const HOLD_DURATION_SECONDS = 20;
+
+const EFFECTIVE_HOLD_DURATION_SECONDS = Math.max(1, Number(HOLD_DURATION_SECONDS) || 60);
+const HOLD_DURATION_MS = Math.max(500, EFFECTIVE_HOLD_DURATION_SECONDS * 1000);
+
 const DEFAULT_SETTINGS = {
   allowEarlyCancel: true,
   enableReflectionForm: false,
@@ -268,6 +276,13 @@ const TRANSLATIONS = {
     goalAccumulatedLabel: "Biriken",
     goalCardEyebrow: "Hedef kumbarası",
     goalProgressToast: "Harika! {goalName} hedefinin %{percent} kadarı daha tamamlandı!",
+    holdFrictionMsg1: "Gerçekten vaz mı geçiyorsun?...",
+    holdFrictionMsg2: "Paranı boşa harcamak üzeresin...",
+    holdFrictionMsg3: "Hedefinden çok uzaklaşıyorsun...",
+    holdFrictionMsg4: "Son şansın, parmağını hemen çek!...",
+    holdFrictionHoldHint: "Parmağınızı butona basılı tutun.",
+    holdFrictionSecondsRemaining: "{seconds} saniye",
+    holdFrictionCelebrateToast: "İradene hakim olduğun için tebrikler!",
   },
   en: {
     documentTitle: "CoolDown",
@@ -496,6 +511,13 @@ const TRANSLATIONS = {
     goalAccumulatedLabel: "Saved",
     goalCardEyebrow: "Savings goal",
     goalProgressToast: "Nice! That added another {percent}% toward your goal ({goalName}).",
+    holdFrictionMsg1: "Really giving up?...",
+    holdFrictionMsg2: "You're about to throw your money away...",
+    holdFrictionMsg3: "You're drifting far from your goal...",
+    holdFrictionMsg4: "Last chance—lift your finger now!...",
+    holdFrictionHoldHint: "Keep your finger pressed on the button.",
+    holdFrictionSecondsRemaining: "{seconds} seconds",
+    holdFrictionCelebrateToast: "Nice—you stayed in charge of your willpower!",
   },
 };
 
@@ -636,9 +658,18 @@ const elements = {
   goalCurrentDisplay: document.querySelector("#goalCurrentDisplay"),
   goalSnackbar: document.querySelector("#goalSnackbar"),
   goalConfettiCanvas: document.querySelector("#goalConfettiCanvas"),
+  holdToBreakOverlay: document.querySelector("#holdToBreakOverlay"),
+  holdToBreakHint: document.querySelector("#holdToBreakHint"),
+  holdToBreakMessage: document.querySelector("#holdToBreakMessage"),
+  holdToBreakProgress: document.querySelector("#holdToBreakProgress"),
+  holdToBreakFill: document.querySelector("#holdToBreakFill"),
+  holdToBreakCounter: document.querySelector("#holdToBreakCounter"),
 };
 
 let goalSnackbarTimer = null;
+
+/** Uzun-basış "Satın Aldım" oturumu devam ederken true */
+let holdPurchaseSessionActive = false;
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -2550,7 +2581,14 @@ async function createProductCard(item, mode) {
     meta.textContent = withWorkTime(item, t("waitingMeta", { duration: formatHours(item.assignedWaitHours), date: formatDate(item.expireDate), createdAt: formatDate(item.dateAdded) }));
 
     actions.append(
-      createActionButton(t("boughtButton"), "secondary-button", () => confirmDecision(item.id, "bought"), !isExpired && !state.settings.allowEarlyCancel),
+      ENABLE_HOLD_TO_BREAK
+        ? createHoldToBuyButton(item.id, !isExpired && !state.settings.allowEarlyCancel)
+        : createActionButton(
+            t("boughtButton"),
+            "secondary-button",
+            () => confirmDecision(item.id, "bought"),
+            !isExpired && !state.settings.allowEarlyCancel,
+          ),
       createActionButton(t("cancelButton"), "primary-button", () => confirmDecision(item.id, isExpired ? "saved_full" : "saved_early"), !isExpired && !state.settings.allowEarlyCancel),
       createActionButton(t("deleteButton"), "danger-button", () => confirmDeleteItem(item.id)),
     );
@@ -2679,6 +2717,148 @@ function renderImagePlaceholder(imageWrap, image, text) {
   placeholder.className = "product-placeholder";
   placeholder.textContent = text;
   imageWrap.prepend(placeholder);
+}
+
+function createHoldToBuyButton(itemId, disabled) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "secondary-button hold-to-buy-trigger";
+  button.textContent = t("boughtButton");
+  button.disabled = disabled;
+  button.addEventListener(
+    "click",
+    (event) => {
+      if (!button.disabled) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    },
+    true,
+  );
+  button.addEventListener("contextmenu", (event) => event.preventDefault());
+
+  if (!disabled) {
+    button.addEventListener(
+      "pointerdown",
+      (event) => {
+        startHoldToBreakPurchase(event, itemId);
+      },
+      { passive: false },
+    );
+  }
+
+  return button;
+}
+
+function resetHoldFrictionOverlay() {
+  if (!elements.holdToBreakFill || !elements.holdToBreakProgress || !elements.holdToBreakMessage || !elements.holdToBreakCounter) {
+    return;
+  }
+  if (elements.holdToBreakHint) {
+    elements.holdToBreakHint.textContent = "";
+  }
+  elements.holdToBreakFill.style.width = "0%";
+  elements.holdToBreakProgress.setAttribute("aria-valuenow", "0");
+  elements.holdToBreakMessage.textContent = "";
+  elements.holdToBreakCounter.textContent = "";
+}
+
+function updateHoldFrictionOverlay(ratio) {
+  const overlayEls =
+    elements.holdToBreakFill &&
+    elements.holdToBreakProgress &&
+    elements.holdToBreakMessage &&
+    elements.holdToBreakCounter;
+  if (!overlayEls) return;
+
+  const pct = Math.min(100, Math.max(0, ratio * 100));
+  elements.holdToBreakFill.style.width = `${pct}%`;
+  elements.holdToBreakProgress.setAttribute("aria-valuenow", String(Math.round(pct)));
+
+  let msgKey = "holdFrictionMsg1";
+  if (pct >= 75) msgKey = "holdFrictionMsg4";
+  else if (pct >= 50) msgKey = "holdFrictionMsg3";
+  else if (pct >= 25) msgKey = "holdFrictionMsg2";
+  elements.holdToBreakMessage.textContent = t(msgKey);
+
+  const remainingMs = Math.max(0, HOLD_DURATION_MS * (1 - ratio));
+  const secsRemain = Math.min(EFFECTIVE_HOLD_DURATION_SECONDS, Math.max(0, Math.ceil(remainingMs / 1000)));
+  elements.holdToBreakCounter.textContent = t("holdFrictionSecondsRemaining", { seconds: secsRemain });
+}
+
+function startHoldToBreakPurchase(event, itemId) {
+  if (!ENABLE_HOLD_TO_BREAK || holdPurchaseSessionActive) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+
+  const overlay = elements.holdToBreakOverlay;
+  if (!overlay) return;
+
+  event.preventDefault();
+
+  holdPurchaseSessionActive = true;
+  const pointerIdCaptured = event.pointerId;
+  const totalMs = HOLD_DURATION_MS;
+  const t0 = performance.now();
+  let rafId = 0;
+  let completed = false;
+
+  function cleanupListeners() {
+    document.removeEventListener("pointerup", onDocPointerUp, true);
+    document.removeEventListener("pointercancel", onDocPointerCancel, true);
+  }
+
+  function finishSessionEarly() {
+    if (completed) return;
+    completed = true;
+    cancelAnimationFrame(rafId);
+    cleanupListeners();
+    overlay.hidden = true;
+    document.body.classList.remove("hold-buy-active");
+    resetHoldFrictionOverlay();
+    holdPurchaseSessionActive = false;
+    showGoalSnackbar(t("holdFrictionCelebrateToast"));
+  }
+
+  function onDocPointerUp(e) {
+    if (e.pointerId !== pointerIdCaptured) return;
+    if (completed) return;
+    finishSessionEarly();
+  }
+
+  function onDocPointerCancel(e) {
+    onDocPointerUp(e);
+  }
+
+  function tick(now) {
+    if (completed) return;
+    const elapsed = now - t0;
+    const ratio = Math.min(1, elapsed / totalMs);
+    updateHoldFrictionOverlay(ratio);
+    if (ratio >= 1) {
+      if (completed) return;
+      completed = true;
+      cancelAnimationFrame(rafId);
+      cleanupListeners();
+      overlay.hidden = true;
+      document.body.classList.remove("hold-buy-active");
+      resetHoldFrictionOverlay();
+      holdPurchaseSessionActive = false;
+      confirmDecision(itemId, "bought");
+      return;
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  document.addEventListener("pointerup", onDocPointerUp, true);
+  document.addEventListener("pointercancel", onDocPointerCancel, true);
+
+  overlay.hidden = false;
+  document.body.classList.add("hold-buy-active");
+  if (elements.holdToBreakHint) {
+    elements.holdToBreakHint.textContent = t("holdFrictionHoldHint");
+  }
+  updateHoldFrictionOverlay(0);
+  rafId = requestAnimationFrame(tick);
 }
 
 function createActionButton(label, className, onClick, disabled = false) {

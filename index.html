@@ -2,7 +2,10 @@
 <html lang="tr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
     <meta name="theme-color" content="#111827" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -608,6 +611,32 @@
     </div>
 
     <div id="goalSnackbar" class="goal-snackbar" role="status" aria-live="polite" hidden></div>
+    <div
+      id="holdToBreakOverlay"
+      class="hold-to-break-overlay"
+      hidden
+      aria-modal="true"
+      role="dialog"
+      aria-labelledby="holdToBreakHint"
+      aria-describedby="holdToBreakMessage holdToBreakCounter"
+    >
+      <div class="hold-to-break-backdrop" aria-hidden="true"></div>
+      <div class="hold-to-break-panel">
+        <p class="hold-to-break-hint" id="holdToBreakHint"></p>
+        <p class="hold-to-break-message" id="holdToBreakMessage"></p>
+        <div
+          class="hold-to-break-progress"
+          id="holdToBreakProgress"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <div class="hold-to-break-fill" id="holdToBreakFill"></div>
+        </div>
+        <p class="hold-to-break-counter" id="holdToBreakCounter" aria-live="polite"></p>
+      </div>
+    </div>
     <canvas id="goalConfettiCanvas" class="goal-confetti-canvas" aria-hidden="true"></canvas>
 
     <template id="productCardTemplate">
